@@ -1,0 +1,122 @@
+.appTitle {
+  margin-top: 20px;
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.appLeftText {
+  font-weight: 500;
+  margin-bottom: 15px;
+
+  @media screen and (max-width: 767px) {
+    position: fixed;
+    left: 15px;
+    bottom: 15px;
+    margin-bottom: 0;
+    font-size: 15px;
+    line-height: 1;
+  }
+}
+
+.appGames {
+  list-style: none;
+  padding: 0;
+  border: 1px solid black;
+  margin-bottom: 0;
+
+  &_head {
+    border-bottom: 1px solid black;
+
+    > span {
+      font-weight: 500;
+    }
+  }
+
+  &_item {
+    cursor: pointer;
+
+    > span {
+      font-size: 15px;
+    }
+  }
+
+  &_head,
+  &_item {
+    display: flex;
+    align-items: center;
+    padding-top: 7px;
+    padding-bottom: 7px;
+
+    > span {
+      display: flex;
+      flex: 0 0 auto;
+      justify-content: center;
+    }
+
+    > span:first-child {
+      width: 35%;
+    }
+
+    > span:nth-child(2),
+    > span:nth-child(3) {
+      width: 22.5%;
+    }
+
+    > span:last-child {
+      width: 20%;
+    }
+
+    > span:not(:last-child) {
+      border-right: 1px solid black;
+    }
+  }
+}
+
+.appCreate {
+  display: flex;
+  flex-direction: column;
+  row-gap: 15px;
+  margin-top: 30px;
+
+  &_form {
+    display: flex;
+    align-items: center;
+    column-gap: 12px;
+  }
+
+  &_btn {
+    display: flex;
+    justify-content: flex-end;
+  }
+}
+
+// *******************************
+
+.board {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #000
+}
+
+.boardRow {
+  display: flex;
+  align-items: center;
+
+  &:not(:last-child) {
+    border-bottom: 1px solid #000
+  }
+}
+
+.boardCeil {
+  display: inline-block;
+  width: 30px;
+  height: 30px;
+
+  &:not(:last-child) {
+    border-right: 1px solid #000
+  }
+
+  &:hover {
+    background-color: yellow;
+  }
+}

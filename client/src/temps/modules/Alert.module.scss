@@ -1,0 +1,54 @@
+.alertWrapper {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  row-gap: 16px;
+  max-width: 400px;
+}
+
+.alertItem {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  column-gap: 24px;
+  padding: 12px 30px;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 6px;
+  transition: opacity 0.5s ease-out;
+  opacity: 1;
+
+  &.success {
+    background-color: #198754;
+    color: #fff;
+  }
+
+  &.warning {
+    background-color: #FFC107;
+    color: #000;
+  }
+
+  &.error {
+    background-color: #EA0C00;
+    color: #fff;
+  }
+
+  &_text {
+    margin: 0;
+  }
+
+  &_close {
+    cursor: pointer;
+
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+
+  &_closing {
+    opacity: 0;
+  }
+}

@@ -1,0 +1,26 @@
+.statusWrapper {
+  position: fixed;
+  bottom: 15px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  column-gap: 10px;
+}
+
+.statusText {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+  // text-transform: uppercase;
+}
+
+.statusPing {
+  border-radius: 100%;
+  background-color: #EA0C00;
+  height: 12px;
+  width: 12px;
+
+  &_connected {
+    background-color: #198754;
+  }
+}

@@ -1,0 +1,35 @@
+.board {
+  display: inline-flex;
+  flex-direction: column;
+  border: 1px solid #000
+}
+
+.boardRow {
+  display: flex;
+  align-items: center;
+
+  &:not(:last-child) {
+    border-bottom: 1px solid #000
+  }
+}
+
+.boardCeil {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 55px;
+  height: 55px;
+  cursor: pointer;
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 1;
+  text-transform: uppercase;
+
+  &:not(:last-child) {
+    border-right: 1px solid #000
+  }
+}
+
+.text {
+  margin: 20px 0 0;
+}

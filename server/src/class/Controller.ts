@@ -77,13 +77,13 @@ class Controller {
       this.service.emitter.off('step', handlers.step)
       this.service.emitter.off('end', handlers.end)
 
-      res.end()
-
       this.service.removePlayer(playerId)
       const is = this.service.removeGame(playerId)
 
       this.service.emitter.emit('refresh', this.service.connected)
       if (is) this.service.emitter.emit('update', this.service.getGames())
+
+      res.end()
     })
 
     const count = this.service.addPlayer(playerId)

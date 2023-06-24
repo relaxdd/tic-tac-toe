@@ -71,9 +71,6 @@ class Controller {
 
     /* ========================== */
 
-    const count = this.service.addPlayer(playerId)
-    this.service.emitter.emit('refresh', count)
-
     res.on('close', () => {
       this.service.emitter.off('update', handlers.update)
       this.service.emitter.off('refresh', handlers.refresh)
@@ -88,6 +85,9 @@ class Controller {
       this.service.emitter.emit('refresh', this.service.connected)
       if (is) this.service.emitter.emit('update', this.service.getGames())
     })
+
+    const count = this.service.addPlayer(playerId)
+    this.service.emitter.emit('refresh', count)
 
     const body = {
       myId: playerId,

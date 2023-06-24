@@ -55,7 +55,8 @@ class Service {
   }
 
   public addPlayer(id: string) {
-    return this._players.push(id)
+    this._players.push(id)
+    return this._players.length
   }
 
   public removePlayer(id: string) {

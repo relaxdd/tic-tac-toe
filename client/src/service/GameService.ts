@@ -14,12 +14,18 @@ export type GameEvents =
 
 type CheckData = { games: GameObj[] }
 
-class GameService {
-  public static api =
-    (window.location.port === '7000'
+function getPath() {
+  if (window.location.hostname === 'localhost') {
+    return (window.location.port === '7000'
       ? window.location.href
       : 'http://localhost:7000/') + 'api'
+  } else {
+    return '/api'
+  }
+}
 
+class GameService {
+  public static api = getPath()
   public static count = 0
   public static client = axios.create({ baseURL: this.api })
 

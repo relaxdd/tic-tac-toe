@@ -36,7 +36,7 @@ class Service {
   }
 
   public get games(): GameDto[] {
-    return this.getGames(true)
+    return this.getGames(false)
   }
 
   public get players() {

@@ -26,7 +26,7 @@ const Password = () => {
     appDispatch({ isVisible: false })
   }
 
-  async function onSubmitHandler(e: FormEvent<HTMLFormElement>) {
+  async function onJoinToGame(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
 
     const ok = await fetching()
@@ -34,9 +34,9 @@ const Password = () => {
 
     if (ok) {
       gameDispatch({ gameRole: 'client' })
-      appDispatch({ isInGame: true, gameId })
-      localStorage.setItem(lsRoleKey, 'client')
+      appDispatch({ isInGame: true, gameId, isVisible: false })
 
+      localStorage.setItem(lsRoleKey, 'client')
       localStorage.removeItem(lsGameKey)
     }
   }
@@ -47,7 +47,7 @@ const Password = () => {
         <Modal.Title>Введите пароль</Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        <form id="entry-password" ref={ref} onSubmit={onSubmitHandler}>
+        <form id="entry-password" ref={ref} onSubmit={onJoinToGame}>
           <input
             type="password"
             className="form-control"

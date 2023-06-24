@@ -68,6 +68,7 @@ const Games = (): ReactNode => {
 
     appDispatch({ isInGame: true, gameId })
     gameDispatch({ gameRole: 'client' })
+
     localStorage.setItem(lsRoleKey, 'client')
   }
 

@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "npx tsc",
+    "serve": "node dist/index.js",
     "start": "nodemon --watch \"src/**\" --ext \"ts,json\" --ignore \"src/**/*.spec.ts\" --exec \"ts-node src/index.ts\"",
     "dev": "concurrently \"npx tsc --watch\" \"nodemon -q dist/index.js\""
   },
@@ -13,7 +14,7 @@
   "dependencies": {
     "body-parser": "^1.20.2",
     "cookie-parser": "^1.4.6",
-    "dotenv": "^16.3.0",
+    "dotenv": "16.3.1",
     "express": "^4.18.2",
     "express-form-data": "^2.0.22",
     "uuid": "^9.0.0"

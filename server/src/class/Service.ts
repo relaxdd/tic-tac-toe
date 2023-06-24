@@ -1,4 +1,4 @@
-import EventEmitter from 'node:events'
+import EventEmitter from 'events'
 import Game from './Game'
 import type { GameObj, Pair } from '../@types'
 import { GameDto } from '../@types'

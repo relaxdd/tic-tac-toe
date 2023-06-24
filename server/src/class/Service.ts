@@ -94,7 +94,7 @@ class Service {
     }
 
     if (game.password && obj.password !== game.password) {
-      const error = 'Пароль введен не верно!'
+      const error = 'Введен неверный пароль!'
       return { status: false, error, code: 400 }
     }
 

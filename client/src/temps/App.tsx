@@ -58,17 +58,16 @@ function App(): ReactNode {
 
         if (data.body === -1) {
           pushAlert('warning', text + 'Ничья!')
-          return
+        } else {
+          // FIXME: Костыль так как тут нет доступа к стору
+          const role = localStorage.getItem(lsRoleKey)
+          const isWin = isWinner(role, data.body)
+
+          pushAlert(
+            isWin ? 'success' : 'warning',
+            text + (isWin ? 'Вы победили' : 'Вы проиграли'),
+          )
         }
-
-        // FIXME: Костыль так как тут нет доступа к стору
-        const role = localStorage.getItem(lsRoleKey)
-        const isWin = isWinner(role, data.body)
-
-        pushAlert(
-          isWin ? 'success' : 'warning',
-          text + (isWin ? 'Вы победили' : 'Вы проиграли'),
-        )
 
         appDispatch({ gameId: null, isInGame: false })
         gameDispatch({

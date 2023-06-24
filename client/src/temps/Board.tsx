@@ -26,7 +26,11 @@ const Board = () => {
       return
     }
 
-    if (!myId || !gameId) return
+    if (!myId || !gameId) {
+      pushAlert('error', 'Ошибка клиента, нет myId или gameId')
+      return
+    }
+
     if (board[r][c] !== null) return
 
     await GameService.boardStep(r, c, myId, gameId)

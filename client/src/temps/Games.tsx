@@ -1,10 +1,10 @@
 import { FormEvent, ReactNode, useState } from 'react'
 import { GameDto } from '../@types'
 import GameService from '../service/GameService.ts'
-import scss from './modules/App.module.scss'
 import { lsGameKey, lsRoleKey, sizes } from '../vars.ts'
 import useAppStore, { IStore, useAppDispatch, useAppSelector } from '../store/appStore.ts'
 import useGameStore, { useGameDispatch } from '../store/gameStore.ts'
+import scss from './modules/Games.module.scss'
 
 const Games = (): ReactNode => {
   const arr: (keyof IStore)[] = ['myId', 'games', 'isConnected']
@@ -29,15 +29,16 @@ const Games = (): ReactNode => {
       return
     }
 
-    const gameId = await GameService.createGame(myId, obj as GameDto)
+    const is = await GameService.createGame(myId, obj as GameDto)
     setLoading(false)
 
-    if (!gameId)
-      alert('Произошла непредвиденная ошибка!')
-    else {
+    if (!is.status) {
+      const msg = 'Произошла непредвиденная ошибка!'
+      pushAlert('warning', is?.error || msg)
+    } else {
       (e.target as HTMLFormElement).reset()
 
-      appDispatch({ isInGame: true, gameId })
+      appDispatch({ isInGame: true, gameId: is.data })
       gameDispatch({ gameRole: 'server', myStep: true })
       localStorage.setItem(lsRoleKey, 'server')
     }
@@ -74,8 +75,8 @@ const Games = (): ReactNode => {
 
   return (
     <>
-      <ul className={scss.appGames}>
-        <li className={scss.appGames_head}>
+      <ul className={scss.games}>
+        <li className={scss.games_head}>
           <span>Название</span>
           <span>Пароль</span>
           <span>Размер</span>
@@ -83,13 +84,14 @@ const Games = (): ReactNode => {
         </li>
 
         {games.map((game) => (
-          <li className={scss.appGames_item} key={game.id}>
+          <li className={scss.games_item} key={game.id}>
             <span>{game.name}</span>
             <span>{game.password ? 'Да' : 'Нет'}</span>
             <span>{game.size}</span>
             <span>
               <input
                 type="button"
+                className={scss.games_btn}
                 onClick={() => onJoinToGame(game.id)}
                 value="Вступить"
               />
@@ -98,8 +100,8 @@ const Games = (): ReactNode => {
         ))}
       </ul>
 
-      <form className={scss.appCreate} onSubmit={onCreateGame}>
-        <div className={scss.appCreate_form}>
+      <form className={scss.create} onSubmit={onCreateGame}>
+        <div className={scss.create_form}>
           <input
             name="name"
             type="text"
@@ -126,7 +128,7 @@ const Games = (): ReactNode => {
           </select>
         </div>
 
-        <div className={scss.appCreate_btn}>
+        <div className={scss.create_btn}>
           <input
             type="submit"
             className="btn btn-primary"

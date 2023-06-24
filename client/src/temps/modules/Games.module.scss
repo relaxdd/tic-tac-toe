@@ -1,0 +1,75 @@
+.games {
+  list-style: none;
+  padding: 0;
+  border: 1px solid black;
+  margin-bottom: 0;
+
+  &_head {
+    border-bottom: 1px solid black;
+
+    > span {
+      font-weight: 500;
+    }
+  }
+
+  &_item {
+    cursor: pointer;
+
+    > span {
+      font-size: 15px;
+    }
+  }
+
+  &_head,
+  &_item {
+    display: flex;
+    align-items: center;
+    padding-top: 7px;
+    padding-bottom: 7px;
+
+    > span {
+      display: flex;
+      flex: 0 0 auto;
+      width: 25%;
+      justify-content: center;
+    }
+
+    > span:not(:last-child) {
+      border-right: 1px solid black;
+    }
+  }
+
+  &_btn {
+    font-size: 14px;
+  }
+}
+
+.create {
+  display: flex;
+  flex-direction: column;
+  row-gap: 17px;
+  margin-top: 30px;
+
+  &_form {
+    display: flex;
+    align-items: center;
+    column-gap: 12px;
+  }
+
+  &_btn {
+    display: flex;
+    justify-content: flex-end;
+  }
+}
+
+@media screen and (max-width: 767px) {
+  .games {
+    &_head > span {
+      font-size: 14px;
+    }
+  }
+
+  .create_btn > input {
+    width: 100%;
+  }
+}

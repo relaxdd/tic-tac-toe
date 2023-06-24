@@ -1,7 +1,7 @@
 import { IGameStore, useGameSelector } from '../store/gameStore.ts'
-import scss from './modules/Board.module.scss'
 import GameService from '../service/GameService.ts'
 import useAppStore, { useAppSelector } from '../store/appStore.ts'
+import scss from './modules/Board.module.scss'
 
 const Text = ({ gameRole }: { gameRole: string }) => {
   return (

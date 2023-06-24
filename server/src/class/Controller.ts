@@ -24,13 +24,13 @@ class Controller {
   }
 
   public check(req: Request, res: Response) {
-    res.json({ games: this.service.games })
+    res.json({ games: this.service.getGames() })
   }
 
   // @Get
   public connect(req: Request, res: Response) {
     let wasId = true
-    const testId = req.cookies?.[cookieKey] || null
+    const testId: string = req.cookies?.[cookieKey] || null
 
     const playerId = testId || (() => {
       wasId = false
@@ -61,7 +61,7 @@ class Controller {
       },
       end: (msg: any) => {
         this.sendMessage(res, { event: 'end', body: msg })
-      }
+      },
     }
 
     this.service.emitter.on('update', handlers.update)
@@ -85,14 +85,15 @@ class Controller {
       this.service.removePlayer(playerId)
       const is = this.service.removeGame(playerId)
 
-      this.service.emitter.emit('refresh', this.service.count)
-      if (is) this.service.emitter.emit('update', this.service.games)
+      this.service.emitter.emit('refresh', this.service.connected)
+      if (is) this.service.emitter.emit('update', this.service.getGames())
     })
 
     const body = {
-      playerId,
-      games: this.service.games,
+      myId: playerId,
+      games: this.service.getGames(),
       isInGame: this.service.isInGame(playerId),
+      players: this.service.connected,
     }
 
     this.sendMessage(res, { event: 'connect', body })
@@ -107,12 +108,16 @@ class Controller {
     const validate = validateObject(body, schema)
 
     if (!validate || typeof player !== 'string')
-      return res.status(400).end()
+      return res.status(400).json({ error: 'Bad Request' })
 
-    const gameId = this.service.addGame(player, body)
-    if (!gameId) return res.status(400).end()
+    const gameId = this.service.createGame(player, body)
 
-    this.service.emitter.emit('update', this.service.games)
+    if (!gameId) {
+      const error = 'Игра с таким именем уже существует!'
+      return res.status(400).json({ error })
+    }
+
+    this.service.emitter.emit('update', this.service.getGames())
 
     return res.json({ gameId })
   }
@@ -125,12 +130,9 @@ class Controller {
     if (!validate) return res.status(400).end()
     const is = this.service.joinToGame(body)
 
-    if (!is.status)
-      return res.status(is.code).json({ error: is.error })
-
-    this.service.emitter.emit('update', this.service.games)
-
-    return res.end()
+    return !is.status
+      ? res.status(is.code).json({ error: is.error })
+      : res.end()
   }
 
   /* =========================================================== */

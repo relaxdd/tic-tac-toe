@@ -6,7 +6,7 @@ const Status = () => {
 
   return (
     <div className={scss.statusWrapper}>
-      <span className={scss.statusText}>Status</span>
+      <span className={scss.statusText}>Статус</span>
       <div className={`${scss.statusPing} ${connected ? scss.statusPing_connected : ''}`}></div>
     </div>
   )

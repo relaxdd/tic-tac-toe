@@ -2,8 +2,6 @@ import { Response } from 'express'
 import { v4 as uuidv4 } from 'uuid'
 import type { Ceil, GameDto, Pair, Players } from '../@types'
 
-type Clients = [Response, (Response | null)]
-
 class Game {
   public readonly id: string
   public readonly name: string

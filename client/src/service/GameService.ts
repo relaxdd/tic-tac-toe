@@ -2,7 +2,21 @@ import type { GameObj } from '../@types'
 import { GameDto } from '../@types'
 import axios, { AxiosError } from 'axios'
 
-type FullData = { playerId: string, isInGame: boolean, games: GameObj[] }
+interface FullData {
+  myId: string,
+  isInGame: boolean,
+  games: GameObj[],
+  players: number
+}
+
+type RespOrError<T = any> = { status: false, error: string } | { status: true, data: T }
+
+/**
+ * -1 - Ничья
+ *  0 - Победил второй игрок
+ *  1 - Победил первый игрок
+ */
+export type RoleWinner = -1 | 0 | 1
 
 export type GameEvents =
   | { event: 'connect', body: FullData }
@@ -10,9 +24,7 @@ export type GameEvents =
   | { event: 'refresh', body: number }
   | { event: 'start', body: undefined }
   | { event: 'step', body: (0 | 1 | null)[][] }
-  | { event: 'end', body: 'draw' | '1' | '0' }
-
-type CheckData = { games: GameObj[] }
+  | { event: 'end', body: RoleWinner }
 
 function getPath() {
   if (window.location.hostname === 'localhost') {
@@ -44,7 +56,7 @@ class GameService {
     source.onmessage = (ev: MessageEvent<string>) => {
       try {
         const data = JSON.parse(ev.data) as GameEvents
-        if (data.event === 'connect') this.myId = data.body.playerId
+        if (data.event === 'connect') this.myId = data.body.myId
         eventFn(data, this.myId)
       } catch (err) {
         console.error(err)
@@ -63,35 +75,30 @@ class GameService {
     }
   }
 
-  public static async check() {
-    try {
-      const resp = await this.client.get<CheckData>(`/check`)
-      return resp.data
-    } catch (e) {
-      console.error(e)
-      return null
-    }
-  }
-
-  public static async createGame(id: string, game: GameDto) {
+  public static async createGame(id: string, game: GameDto): Promise<RespOrError<string>> {
     type Resp = { gameId: string }
 
     try {
       const url = `/create?player=${id}`
       const resp = await this.client.post<Resp>(url, game)
+      const gameId = resp.data?.gameId
 
-      return resp.data?.gameId
+      if (!gameId)
+        return { status: false, error: 'Ошибка сервера, нет gameId!' }
+      else
+        return { status: true, data: gameId }
     } catch (e) {
+      const err = e as AxiosError<{ error: string }>
       console.error(e)
-      return null
+      return { status: false, error: err?.response?.data?.error || err.message }
     }
   }
 
-  public static async joinToGame(gameId: string, playerId: string, password = '') {
+  public static async joinToGame(gameId: string, playerId: string, password = ''): Promise<RespOrError<undefined>> {
     try {
       const obj = { gameId, password, playerId }
       await this.client.post(`/join`, obj)
-      return { status: true }
+      return { status: true, data: undefined }
     } catch (e) {
       const err = e as AxiosError<{ error: string }>
       console.error(err)

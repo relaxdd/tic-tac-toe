@@ -22,7 +22,7 @@ const AlertItem: FC<AlertItemProps> = ({ value, onHide }) => {
 
   useEffect(() => {
     if (closing || value.type === 'error') return
-    const time = value.type === 'success' ? 5000 : 8000
+    const time = value.type === 'success' ? 6000 : 7000
     const tick = setTimeout(() => initHide(), time)
 
     return () => {

@@ -1,7 +1,6 @@
 import EventEmitter from 'events'
 import Game from './Game'
 import type { GameObj, Pair } from '../@types'
-import { GameDto } from '../@types'
 
 // type IPlayer = {
 //   id: string,
@@ -35,15 +34,11 @@ class Service {
     this._players = []
   }
 
-  public get games(): GameDto[] {
-    return this.getGames(false)
-  }
-
   public get players() {
     return this._players
   }
 
-  public get count() {
+  public get connected() {
     return this._players.length
   }
 
@@ -70,11 +65,14 @@ class Service {
 
   /* ======================== */
 
-  public addGame(player: string, obj: Omit<GameObj, 'id'>): string {
+  public createGame(player: string, obj: Omit<GameObj, 'id'>): string | null {
     const { name, password } = obj
-    const size = obj.size.split('x')?.[0] || '3'
+    const size = Number(obj.size.split('x')?.[0] || '3')
 
-    const game = new Game(player, name, Number(size), password)
+    const exist = this._games.find(it => it.name === name)
+    if (exist !== undefined) return null
+
+    const game = new Game(player, name, size, password)
     this._games.push(game)
 
     return game.id
@@ -102,6 +100,9 @@ class Service {
 
     game.join(obj.playerId, true)
 
+    this.broadcast('update', game.players, this.getGames(true))
+    this.broadcastAll('update', game.players, this.getGames())
+
     return { status: true }
   }
 
@@ -114,7 +115,7 @@ class Service {
     const board = game.step(obj.playerId, obj.pos)
 
     if (game.players[1] !== null)
-      this.broadcast('step', game.players as string[], board)
+      this.broadcast('step', game.players, board)
     else {
       console.error('Ошибка рассылки!')
       return
@@ -123,11 +124,11 @@ class Service {
     const check = this.checkWinner(board)
 
     if (check.end) {
-      this.broadcast('end', game.players as string[], String(check.winner))
+      this.broadcast('end', game.players, check.winner)
     } else {
       const isDrawn = !board.some(row => row.some(ceil => ceil === null))
       if (!isDrawn) return
-      this.broadcast('end', game.players as string[], 'draw')
+      this.broadcast('end', game.players, -1)
     }
 
     const is = this.removeGame(game.players[0])
@@ -137,12 +138,12 @@ class Service {
       return
     }
 
-    this.broadcast('update', game.players as string[], this.games)
+    this.broadcast('update', game.players, this.getGames())
   }
 
   /* ======================== */
 
-  private checkWinner(board: (null | 0 | 1)[][]): ({ end: false } | { end: true, winner: number|null }) {
+  private checkWinner(board: (null | 0 | 1)[][]): ({ end: false } | { end: true, winner: number | null }) {
     let winner: number | null = null
 
     const is = [0, 1].some((i) => {
@@ -151,7 +152,7 @@ class Service {
       return true
     })
 
-    return !is ? { end: false } : { end: true, winner  }
+    return !is ? { end: false } : { end: true, winner }
   }
 
   private isSomeWin(board: (null | 0 | 1)[][], i: number) {
@@ -176,7 +177,7 @@ class Service {
 
   /* ======================== */
 
-  private broadcast(type: string, receivers: string[], msg?: any) {
+  private broadcastAll(type: string, exclude: (string | null)[], msg?: any) {
     const events = this.emitter.eventNames()
 
     if (!events.includes(type)) {
@@ -184,10 +185,36 @@ class Service {
       return
     }
 
-    const list = receivers.map(id => this._players.indexOf(id))
-    const listeners = this.emitter.listeners(type)
+    exclude = exclude.filter(it => typeof it === 'string')
 
-    for (const index of list) {
+    const receivers = this._players.filter(it => !exclude.includes(it))
+    const indexes = receivers.map(id => this._players.indexOf(id!))
+
+    this.customEmit(type, indexes, msg)
+  }
+
+  private broadcast(type: string, receivers: (string | null)[], msg?: any) {
+    const events = this.emitter.eventNames()
+
+    if (!events.includes(type)) {
+      console.warn('Предупреждение: такое событие не добавлено!')
+      return
+    }
+
+    receivers = receivers.filter(it => typeof it === 'string')
+    const indexes = receivers.map(id => this._players.indexOf(id!))
+
+    this.customEmit(type, indexes, msg)
+  }
+
+  private customEmit(type: string, indexes: number[], msg?: any) {
+    if (!indexes.length) return
+
+    const listeners = this.emitter.listeners(type)
+    if (!listeners.length) return
+
+    for (const index of indexes) {
+      if (index === -1) continue
       const fn = listeners[index]
 
       if (typeof fn === 'function')

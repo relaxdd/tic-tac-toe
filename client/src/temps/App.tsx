@@ -10,6 +10,7 @@ import Password from './Password.tsx'
 import { defBoard, useGameDispatch, useGameSelector } from '../store/gameStore.ts'
 import { GameObj } from '../@types'
 import { lsRoleKey } from '../vars.ts'
+import { isWinner } from '../utils.ts'
 
 function App(): ReactNode {
   const arr: (keyof IStore)[] = ['isInGame', 'isConnected', 'myId']
@@ -25,12 +26,9 @@ function App(): ReactNode {
 
   function onConnectEvent(data: GameEvents, id: string | null) {
     switch (data?.event) {
-      // Подключение к серверу
-      case 'connect': {
-        const { playerId, isInGame, games } = data.body
-        appDispatch({ myId: playerId, isInGame, games })
+      case 'connect':
+        appDispatch(data.body)
         break
-      }
       // Обновление списка игр
       case 'update': {
         if (id === null) {
@@ -56,18 +54,20 @@ function App(): ReactNode {
         gameDispatch(prev => ({ board: data.body, myStep: !prev.myStep }))
         break
       case 'end': {
-        if (data.body === 'draw') {
-          pushAlert('warning', 'Итог игры: Ничья!')
+        const text = 'Результат игры: '
+
+        if (data.body === -1) {
+          pushAlert('warning', text + 'Ничья!')
           return
         }
 
-        // FIXME: Костыль
+        // FIXME: Костыль так как тут нет доступа к стору
         const role = localStorage.getItem(lsRoleKey)
-        const isWin = role === 'server' && data.body === '1' || role === 'client' && data.body === '0'
+        const isWin = isWinner(role, data.body)
 
         pushAlert(
           isWin ? 'success' : 'warning',
-          isWin ? 'Итог игры: Вы победили' : 'Итог игры: Вы проиграли',
+          text + (isWin ? 'Вы победили' : 'Вы проиграли'),
         )
 
         appDispatch({ gameId: null, isInGame: false })
@@ -101,21 +101,21 @@ function App(): ReactNode {
       await GameService.connect(onConnectOpen, onConnectEvent, onConnectError)
     }
 
-    async function focus() {
-      const check = await GameService.check()
-
-      if (check)
-        appDispatch(check)
-      else
-        pushAlert('error', 'При обновлении данных произошла ошибка!')
-    }
+    // async function focus() {
+    //   const check = await GameService.check()
+    //
+    //   if (check)
+    //     appDispatch(check)
+    //   else
+    //     pushAlert('error', 'При обновлении данных произошла ошибка!')
+    // }
 
     window.addEventListener('load', load)
-    window.addEventListener('focus', focus)
+    // window.addEventListener('focus', focus)
 
     return () => {
       window.removeEventListener('load', load)
-      window.removeEventListener('focus', focus)
+      // window.removeEventListener('focus', focus)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameRole])

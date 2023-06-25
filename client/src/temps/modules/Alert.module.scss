@@ -7,6 +7,10 @@
   align-items: flex-end;
   row-gap: 16px;
   max-width: 400px;
+
+  @media screen and (max-width: 767px) {
+    max-width: calc(100vw - 40px);
+  }
 }
 
 .alertItem {
@@ -14,7 +18,7 @@
   align-items: flex-start;
   justify-content: space-between;
   column-gap: 24px;
-  padding: 12px 30px;
+  padding: 12px 25px;
   font-size: 14px;
   font-weight: 500;
   border-radius: 6px;

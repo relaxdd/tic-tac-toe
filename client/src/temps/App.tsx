@@ -9,7 +9,7 @@ import useAppStore, { IStore, useAppDispatch, useAppSelector } from '../store/ap
 import Password from './Password.tsx'
 import { defBoard, useGameDispatch, useGameSelector } from '../store/gameStore.ts'
 import { GameObj } from '../@types'
-import { lsRoleKey } from '../vars.ts'
+import { lsRoleKey, lsStateKey } from '../vars.ts'
 import { isWinner } from '../utils.ts'
 
 function App(): ReactNode {
@@ -20,19 +20,33 @@ function App(): ReactNode {
   const appDispatch = useAppDispatch()
   const gameDispatch = useGameDispatch()
 
+  function clearBoard() {
+    appDispatch({ gameId: null, isInGame: false })
+    gameDispatch({
+      board: defBoard, myStep: false, isStarted: false, gameRole: null,
+    })
+
+    localStorage.removeItem(lsRoleKey)
+    localStorage.removeItem(lsStateKey)
+  }
+
   function onConnectOpen() {
     appDispatch({ isConnected: true })
   }
 
   function onConnectEvent(data: GameEvents, id: string | null) {
     switch (data?.event) {
-      case 'connect':
-        appDispatch(data.body)
+      case 'connect': {
+        const { isStarted, ...test } = data.body
+
+        appDispatch(test)
+        gameDispatch({ isStarted })
         break
+      }
       // Обновление списка игр
       case 'update': {
         if (id === null) {
-          pushAlert('error', 'Ошибка клиента!')
+          pushAlert('error', 'Ошибка клиента, нет myId!')
           return
         }
 
@@ -50,8 +64,20 @@ function App(): ReactNode {
       case 'refresh':
         appDispatch({ players: data.body })
         break
-      case 'step':
-        gameDispatch(prev => ({ board: data.body, myStep: !prev.myStep }))
+      case 'step': {
+        let obj = null
+
+        gameDispatch(prev => {
+          obj = { board: data.body, myStep: !prev.myStep }
+          return obj
+        })
+
+        localStorage.setItem(lsStateKey, JSON.stringify(obj))
+        break
+      }
+      case 'close':
+        pushAlert('warning', 'Игра окончена по причине бездействия одного из игроков')
+        clearBoard()
         break
       case 'end': {
         const text = 'Результат игры: '
@@ -59,7 +85,6 @@ function App(): ReactNode {
         if (data.body === -1) {
           pushAlert('warning', text + 'Ничья!')
         } else {
-          // FIXME: Костыль так как тут нет доступа к стору
           const role = localStorage.getItem(lsRoleKey)
           const isWin = isWinner(role, data.body)
 
@@ -69,12 +94,7 @@ function App(): ReactNode {
           )
         }
 
-        appDispatch({ gameId: null, isInGame: false })
-        gameDispatch({
-          board: defBoard, myStep: false, isStarted: false, gameRole: null,
-        })
-
-        localStorage.removeItem(lsRoleKey)
+        clearBoard()
         break
       }
       default:

@@ -5,8 +5,9 @@ import axios, { AxiosError } from 'axios'
 interface FullData {
   myId: string,
   isInGame: boolean,
+  isStarted: boolean
   games: GameObj[],
-  players: number
+  players: number,
 }
 
 type RespOrError<T = any> = { status: false, error: string } | { status: true, data: T }
@@ -22,7 +23,8 @@ export type GameEvents =
   | { event: 'connect', body: FullData }
   | { event: 'update', body: GameObj[] }
   | { event: 'refresh', body: number }
-  | { event: 'start', body: undefined }
+  | { event: 'start', body?: undefined }
+  | { event: 'close', body?: undefined }
   | { event: 'step', body: (0 | 1 | null)[][] }
   | { event: 'end', body: RoleWinner }
 

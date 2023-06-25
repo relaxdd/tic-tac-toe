@@ -8,11 +8,13 @@ const cookieKey = '_awenn2015_tictactoe_playerid'
 
 class Controller {
   private service: Service
+  private timers: { id: string, timer: NodeJS.Timer }[] = []
 
   public constructor() {
     this.service = new Service()
   }
 
+  // @Get
   public getConnected(req: Request, res: Response) {
     res.json(this.service.players)
   }
@@ -21,10 +23,6 @@ class Controller {
   public getGames(req: Request, res: Response) {
     const all = 'all' in req.query
     res.json(this.service.getGames(all))
-  }
-
-  public check(req: Request, res: Response) {
-    res.json({ games: this.service.getGames() })
   }
 
   // @Get
@@ -59,6 +57,9 @@ class Controller {
       step: (msg: any) => {
         this.sendMessage(res, { event: 'step', body: msg })
       },
+      close: (msg: any) => {
+        this.sendMessage(res, { event: 'close', body: msg })
+      },
       end: (msg: any) => {
         this.sendMessage(res, { event: 'end', body: msg })
       },
@@ -67,21 +68,46 @@ class Controller {
     this.service.emitter.on('update', handlers.update)
     this.service.emitter.on('refresh', handlers.refresh)
     this.service.emitter.on('step', handlers.step)
+    this.service.emitter.on('close', handlers.close)
     this.service.emitter.on('end', handlers.end)
 
-    /* ========================== */
+    // ***************************************
+
+    const check = this.timers.find(it => it.id === playerId)
+
+    if (check) {
+      clearTimeout(check.timer[Symbol.toPrimitive]())
+      this.timers = this.timers.filter(it => it.id !== playerId)
+    }
+
+    // ***************************************
 
     res.on('close', () => {
       this.service.emitter.off('update', handlers.update)
       this.service.emitter.off('refresh', handlers.refresh)
       this.service.emitter.off('step', handlers.step)
+      this.service.emitter.off('close', handlers.close)
       this.service.emitter.off('end', handlers.end)
 
-      this.service.removePlayer(playerId)
-      const is = this.service.removeGame(playerId)
-
       this.service.emitter.emit('refresh', this.service.connected)
-      if (is) this.service.emitter.emit('update', this.service.getGames())
+      this.service.removePlayer(playerId)
+
+      const find = this.service.getGames(true).find(it => it.players.includes(playerId))
+
+      if (find) {
+        const timer = setTimeout(() => {
+          const is = this.service.removeGameByPlayerId(playerId)
+          if (is) this.service.emitter.emit('update', this.service.getGames())
+          this.timers = this.timers.filter(it => it.id !== playerId)
+        }, 15 * 1000)
+
+        const index = this.timers.findIndex(it => it.id === playerId)
+
+        if (index === -1)
+          this.timers.push({ id: playerId, timer })
+        else
+          this.timers[index]!.timer = timer
+      }
 
       res.end()
     })
@@ -89,18 +115,20 @@ class Controller {
     const count = this.service.addPlayer(playerId)
     this.service.emitter.emit('refresh', count)
 
+    if (!this.service.getGames(true).length)
+      this.timers = []
+
     const body = {
       myId: playerId,
       games: this.service.getGames(),
-      isInGame: this.service.isInGame(playerId),
       players: this.service.connected,
+      ...this.service.isInGame(playerId),
     }
 
     this.sendMessage(res, { event: 'connect', body })
   }
 
   // @Post
-  // @ts-ignore
   public createGame(req: Request, res: Response) {
     const schema = schemes.create
     const player = req.query?.['player']
@@ -122,6 +150,7 @@ class Controller {
     return res.json({ gameId })
   }
 
+  // @Post
   public joinToGame(req: Request, res: Response) {
     const schema = schemes.join
     const body = req?.body || {}
@@ -135,7 +164,7 @@ class Controller {
       : res.end()
   }
 
-  /* =========================================================== */
+  // ***************************************
 
   // @Post
   public doStep(req: Request, res: Response) {

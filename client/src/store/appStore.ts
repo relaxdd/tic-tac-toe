@@ -33,6 +33,8 @@ export function getGameIdOrNull() {
   return localStorage.getItem(lsGameKey)
 }
 
+// TODO: Добавить сохранение myId и gameId
+
 const useAppStore = create<AppContext>((set) => ({
   myId: null,
   gameId: getGameIdOrNull(),
@@ -50,6 +52,5 @@ const useAppStore = create<AppContext>((set) => ({
 
 export const useAppDispatch = () => useAppStore(store => store.dispatch)
 export const useAppSelector = createSelector(useAppStore)
-
 
 export default useAppStore

@@ -1,11 +1,6 @@
-import EventEmitter from 'events'
 import Game from './Game'
 import type { GameObj, Pair } from '../@types'
-
-// type IPlayer = {
-//   id: string,
-//   listener: number
-// }
+import CustomEmitter from './CustomEmitter'
 
 type CreateGame =
   | { status: true }
@@ -24,25 +19,25 @@ type StepPayload = {
 }
 
 class Service {
-  public readonly emitter: EventEmitter
+  public readonly emitter: CustomEmitter
+
   private readonly _games: Game[]
-  private readonly _players: string[]
+  private readonly _timer = 90
 
   public constructor() {
-    this.emitter = new EventEmitter()
+    this.emitter = new CustomEmitter()
     this._games = []
-    this._players = []
   }
 
   public get players() {
-    return this._players
+    return this.emitter.players
   }
 
   public get connected() {
-    return this._players.length
+    return this.emitter.players.length
   }
 
-  /* ======================== */
+  // **************************
 
   public getGames(all = false) {
     return (all ? this._games
@@ -51,20 +46,24 @@ class Service {
   }
 
   public isInGame(id: string) {
-    return this._games.find(it => it.players.includes(id)) !== undefined
+    const game = this._games.find(it => it.players.includes(id))
+
+    return game !== undefined ? {
+      isInGame: true,
+      isStarted: game.players.length === 2 && game.players[1] !== null,
+    } : { isInGame: false, isStarted: false }
   }
 
   public addPlayer(id: string) {
-    this._players.push(id)
-    return this._players.length
+    this.emitter.add(id)
+    return this.connected
   }
 
   public removePlayer(id: string) {
-    const index = this._players.indexOf(id)
-    this._players.splice(index, 1)
+    this.emitter.remove(id)
   }
 
-  /* ======================== */
+  // **************************
 
   public createGame(player: string, obj: Omit<GameObj, 'id'>): string | null {
     const { name, password } = obj
@@ -79,8 +78,15 @@ class Service {
     return game.id
   }
 
-  public removeGame(id: string) {
+  public removeGameByPlayerId(id: string) {
     const index = this._games.findIndex(it => it.players.includes(id))
+    if (index === -1) return false
+    this._games.splice(index, 1)
+    return true
+  }
+
+  public removeGameById(id: string) {
+    const index = this._games.findIndex(it => it.id === id)
     if (index === -1) return false
     this._games.splice(index, 1)
     return true
@@ -101,8 +107,12 @@ class Service {
 
     game.join(obj.playerId, true)
 
-    this.broadcast('update', game.players, this.getGames(true))
-    this.broadcastAll('update', game.players, this.getGames())
+    this.emitter.broadcast('update', game.players, this.getGames(true))
+    this.emitter.broadcastAll('update', game.players, this.getGames())
+
+    game.timer = setTimeout(() => {
+      this.closeGame(game)
+    }, this._timer * 1000)
 
     return { status: true }
   }
@@ -116,33 +126,49 @@ class Service {
     const board = game.step(obj.playerId, obj.pos)
 
     if (game.players[1] !== null)
-      this.broadcast('step', game.players, board)
+      this.emitter.broadcast('step', game.players, board)
     else {
-      console.error('Ошибка рассылки!')
+      console.error('Ошибка игры!')
+      this.closeGame(game)
+
       return
     }
 
     const check = this.checkWinner(board)
 
-    if (check.end) {
-      this.broadcast('end', game.players, check.winner)
-    } else {
+    if (check.end)
+      this.emitter.broadcast('end', game.players, check.winner)
+    else {
       const isDrawn = !board.some(row => row.some(ceil => ceil === null))
-      if (!isDrawn) return
-      this.broadcast('end', game.players, -1)
+
+      // Игра продолжается
+      if (!isDrawn) {
+        game.timer?.refresh()
+        return
+      }
+
+      this.emitter.broadcast('end', game.players, -1)
     }
 
-    const is = this.removeGame(game.players[0])
+    clearTimeout(game?.timer?.[Symbol.toPrimitive]())
+    const is = this.removeGameById(game.id)
 
     if (!is) {
       console.error('Произошла ошибка во время удаления игры!')
       return
     }
 
-    this.broadcast('update', game.players, this.getGames())
+    this.emitter.broadcast('update', game.players, this.getGames())
   }
 
-  /* ======================== */
+  private closeGame(game: Game) {
+    this.removeGameById(game.id)
+
+    this.emitter.broadcast('close', game.players)
+    this.emitter.broadcast('update', game.players, this.getGames())
+  }
+
+  // **************************
 
   private checkWinner(board: (null | 0 | 1)[][]): ({ end: false } | { end: true, winner: number | null }) {
     let winner: number | null = null
@@ -174,55 +200,6 @@ class Service {
     if (dig2) return true
 
     return false
-  }
-
-  /* ======================== */
-
-  private broadcastAll(type: string, exclude: (string | null)[], msg?: any) {
-    const events = this.emitter.eventNames()
-
-    if (!events.includes(type)) {
-      console.warn('Предупреждение: такое событие не добавлено!')
-      return
-    }
-
-    exclude = exclude.filter(it => typeof it === 'string')
-
-    const receivers = this._players.filter(it => !exclude.includes(it))
-    const indexes = receivers.map(id => this._players.indexOf(id!))
-
-    this.customEmit(type, indexes, msg)
-  }
-
-  private broadcast(type: string, receivers: (string | null)[], msg?: any) {
-    const events = this.emitter.eventNames()
-
-    if (!events.includes(type)) {
-      console.warn('Предупреждение: такое событие не добавлено!')
-      return
-    }
-
-    receivers = receivers.filter(it => typeof it === 'string')
-    const indexes = receivers.map(id => this._players.indexOf(id!))
-
-    this.customEmit(type, indexes, msg)
-  }
-
-  private customEmit(type: string, indexes: number[], msg?: any) {
-    if (!indexes.length) return
-
-    const listeners = this.emitter.listeners(type)
-    if (!listeners.length) return
-
-    for (const index of indexes) {
-      if (index === -1) continue
-      const fn = listeners[index]
-
-      if (typeof fn === 'function')
-        fn(msg)
-      else
-        console.error(`Ошибка, под индексом ${index} нет слушателя!`)
-    }
   }
 }
 

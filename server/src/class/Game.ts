@@ -1,4 +1,3 @@
-import { Response } from 'express'
 import { v4 as uuidv4 } from 'uuid'
 import type { Ceil, GameDto, Pair, Players } from '../@types'
 
@@ -9,6 +8,7 @@ class Game {
   public readonly password: string
   public readonly players: Players
   public readonly board: Ceil[][]
+  public timer: NodeJS.Timeout | null = null
 
   private _started = false
 
@@ -29,16 +29,19 @@ class Game {
 
   public join(playerId: string, start = false) {
     this.players[1] = playerId
+    if (start) this.start()
+  }
 
-    if (start) {
-      this._started = true
-    }
+  public start() {
+    this._started = true
   }
 
   public step(playerId: string, [r, c]: Pair<number>) {
     this.board![r]![c] = this.players[0] === playerId ? 1 : 0
     return this.board
   }
+
+  // *******************************
 
   public toObject(): GameDto {
     return {
@@ -49,8 +52,6 @@ class Game {
       players: this.players,
     }
   }
-
-  /* =========================== */
 
   private createBoard(): Ceil[][] {
     const __x = () => [...Array(this.size).keys()]

@@ -38,8 +38,9 @@ const Games = (): ReactNode => {
     } else {
       (e.target as HTMLFormElement).reset()
 
-      appDispatch({ isInGame: true, gameId: is.data })
       gameDispatch({ gameRole: 'server', myStep: true })
+      appDispatch({ isInGame: true, gameId: is.data })
+
       localStorage.setItem(lsRoleKey, 'server')
     }
   }
@@ -67,8 +68,8 @@ const Games = (): ReactNode => {
       return
     }
 
-    appDispatch({ isInGame: true, gameId })
     gameDispatch({ gameRole: 'client' })
+    appDispatch({ isInGame: true, gameId })
 
     localStorage.setItem(lsRoleKey, 'client')
   }

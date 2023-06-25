@@ -18,8 +18,6 @@ const Board = () => {
   const { myId, gameId } = useAppSelector('myId', 'gameId')
   const pushAlert = useAppStore(s => s.pushAlert)
 
-  if (!gameRole) return null
-
   async function onBoardClick(r: number, c: number) {
     if (!myStep) {
       pushAlert('warning', 'Дождитесь пока сходит соперник')
@@ -46,6 +44,8 @@ const Board = () => {
         return 'x'
     }
   }
+
+  if (!gameRole) return null
 
   return (
     <div className="text-center text-lg-left">

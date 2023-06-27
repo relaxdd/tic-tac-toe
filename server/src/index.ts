@@ -5,7 +5,7 @@ import router from './router';
 
 dotenv.config()
 
-export const __public = path.resolve(__dirname, '../public')
+export const __public = path.resolve(__dirname, '../../../public')
 
 const server = express()
 const port = process.env.PORT

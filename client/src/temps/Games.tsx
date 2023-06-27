@@ -1,10 +1,10 @@
 import { FormEvent, ReactNode, useState } from 'react'
-import { GameDto } from '../@types'
 import GameService from '../service/GameService.ts'
 import { lsGameKey, lsRoleKey, sizes } from '../vars.ts'
 import useAppStore, { IStore, useAppDispatch, useAppSelector } from '../store/appStore.ts'
 import useGameStore, { useGameDispatch } from '../store/gameStore.ts'
 import scss from './modules/Games.module.scss'
+import { GameDto } from '../../../shared/@types'
 
 const Games = (): ReactNode => {
   const arr: (keyof IStore)[] = ['myId', 'games', 'isConnected']
@@ -38,7 +38,7 @@ const Games = (): ReactNode => {
     } else {
       (e.target as HTMLFormElement).reset()
 
-      gameDispatch({ gameRole: 'server', myStep: true })
+      gameDispatch({ gameRole: 'server', isMyStep: true })
       appDispatch({ isInGame: true, gameId: is.data })
 
       localStorage.setItem(lsRoleKey, 'server')
@@ -121,9 +121,9 @@ const Games = (): ReactNode => {
           <select name="size" className="form-select" required>
             <option disabled>Размер сетки</option>
 
-            {sizes.map((size, i) => (
-              <option value={size} key={i}>
-                {size}
+            {sizes.map((it, i) => (
+              <option value={it.size} key={i}>
+                {it?.label || it.size}
               </option>
             ))}
           </select>

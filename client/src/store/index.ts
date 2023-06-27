@@ -9,6 +9,8 @@ export type StoreWithDispatch<T extends SomeObject> = { dispatch: DispatchStore<
 export function createSelector<S extends Record<string, any>>(store: UseBoundStore<StoreApi<S>>) {
   type Store = Omit<S, 'dispatch'>
   return <K extends keyof Store>(...keys: K[]) => store((state) => {
+      if (!keys.length) return state
+
       type Select = Pick<Store, K>
       return keys.reduce((acc, key) => {
         acc[key] = state[key]

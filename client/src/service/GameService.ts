@@ -1,53 +1,15 @@
-import type { GameObj } from '../@types'
-import { GameDto } from '../@types'
+import { GameEvents, RespOrError } from '../@types'
 import axios, { AxiosError } from 'axios'
-
-interface FullData {
-  myId: string,
-  isInGame: boolean,
-  isStarted: boolean
-  games: GameObj[],
-  players: number,
-}
-
-type RespOrError<T = any> = { status: false, error: string } | { status: true, data: T }
-
-/**
- * -1 - Ничья
- *  0 - Победил второй игрок
- *  1 - Победил первый игрок
- */
-export type RoleWinner = -1 | 0 | 1
-
-export type GameEvents =
-  | { event: 'connect', body: FullData }
-  | { event: 'update', body: GameObj[] }
-  | { event: 'refresh', body: number }
-  | { event: 'start', body?: undefined }
-  | { event: 'close', body?: undefined }
-  | { event: 'step', body: (0 | 1 | null)[][] }
-  | { event: 'end', body: RoleWinner }
-
-function getPath() {
-  if (window.location.hostname === 'localhost') {
-    return (window.location.port === '7000'
-      ? window.location.href
-      : 'http://localhost:7000/') + 'api'
-  } else {
-    return '/api'
-  }
-}
+import { GameDto } from '../../../shared/@types'
 
 class GameService {
-  public static api = getPath()
+  public static api = this.getPath()
   public static count = 0
   public static client = axios.create({ baseURL: this.api })
 
-  public static myId: string | null = null
-
   public static connect(
     openFn: () => void,
-    eventFn: (data: GameEvents, myId: string | null) => void,
+    eventFn: (data: GameEvents) => void,
     errorFn: (final: boolean) => void,
   ) {
     const url = `${this.api}/connect`
@@ -58,8 +20,7 @@ class GameService {
     source.onmessage = (ev: MessageEvent<string>) => {
       try {
         const data = JSON.parse(ev.data) as GameEvents
-        if (data.event === 'connect') this.myId = data.body.myId
-        eventFn(data, this.myId)
+        eventFn(data)
       } catch (err) {
         console.error(err)
       }
@@ -67,7 +28,6 @@ class GameService {
 
     source.onerror = () => {
       if (this.count >= 10) {
-        this.myId = null
         source.close()
         errorFn(true)
       } else {
@@ -112,6 +72,21 @@ class GameService {
     const obj = { pos: [r, c], playerId, gameId }
     const resp = await this.client.post('/step', obj)
     return resp.data
+  }
+
+  public static async cancelGame(playerId: string, gameId: string) {
+    const obj = { playerId, gameId }
+    await this.client.post('/cancel', obj)
+  }
+
+  private static getPath() {
+    if (window.location.hostname === 'localhost') {
+      return (window.location.port === '7000'
+        ? window.location.href
+        : 'http://localhost:7000/') + 'api'
+    } else {
+      return '/api'
+    }
   }
 }
 

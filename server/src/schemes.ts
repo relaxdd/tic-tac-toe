@@ -1,6 +1,6 @@
 import { Schema } from './@types'
 
-type SchemaKeys = 'create' | 'join' | 'step'
+type SchemaKeys = 'create' | 'join' | 'step' | 'cancel'
 
 const schemes: Record<SchemaKeys, Schema[]> = {
   create: [
@@ -25,6 +25,10 @@ const schemes: Record<SchemaKeys, Schema[]> = {
   ],
   step: [
     { type: 'object', key: 'pos', array: true },
+    { type: 'string', key: 'playerId', required: true },
+    { type: 'string', key: 'gameId', required: true },
+  ],
+  cancel: [
     { type: 'string', key: 'playerId', required: true },
     { type: 'string', key: 'gameId', required: true },
   ],

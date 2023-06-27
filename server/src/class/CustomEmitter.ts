@@ -74,6 +74,36 @@ class CustomEmitter extends EventEmitter {
         console.error(`Ошибка, под индексом ${index} нет слушателя!`)
     }
   }
+
+  public each(type: string, receivers: (string | null)[], cb: (id: string) => any) {
+    const events = this.eventNames()
+
+    if (!events.includes(type)) {
+      console.warn('Предупреждение: такое событие не добавлено!')
+      return
+    }
+
+    receivers = receivers.filter(it => typeof it === 'string')
+
+    const list = receivers.map(id => ({
+      index: this._players.indexOf(id!), id: id!
+    }))
+
+    if (!list.length) return
+
+    const listeners = this.listeners(type)
+    if (!listeners.length) return
+
+    for (const { index, id } of list) {
+      if (index === -1) continue
+      const fn = listeners[index]
+
+      if (typeof fn === 'function')
+        fn(cb(id))
+      else
+        console.error(`Ошибка, под индексом ${index} нет слушателя!`)
+    }
+  }
 }
 
 export default CustomEmitter

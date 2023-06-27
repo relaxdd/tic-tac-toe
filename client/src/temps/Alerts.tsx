@@ -12,9 +12,9 @@ interface AlertItemProps {
 /* ========================================= */
 
 const types: Record<AlertTypes, string> = {
-  success: scss.success,
-  warning: scss.warning,
-  error: scss.error,
+  success: scss.success!,
+  warning: scss.warning!,
+  error: scss.error!,
 }
 
 const AlertItem: FC<AlertItemProps> = ({ value, onHide }) => {

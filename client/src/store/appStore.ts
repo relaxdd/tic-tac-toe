@@ -1,8 +1,8 @@
 import { create } from 'zustand'
-import { GameObj } from '../@types'
 import { createSelector, StoreWithDispatch } from './index.ts'
 import Random from '../class/Random.ts'
 import { lsGameKey } from '../vars.ts'
+import { GameObj } from '../../../shared/@types'
 
 export type AlertTypes = 'success' | 'warning' | 'error'
 
@@ -20,6 +20,7 @@ export interface IStore {
   alerts: IAlert[],
   /** Кол-во подключенных игроков */
   players: number,
+  /** Список открытых игр */
   games: GameObj[],
   /** Модальное окно с вводом пароля */
   isVisible: boolean
@@ -32,8 +33,6 @@ type AppContext = {
 export function getGameIdOrNull() {
   return localStorage.getItem(lsGameKey)
 }
-
-// TODO: Добавить сохранение myId и gameId
 
 const useAppStore = create<AppContext>((set) => ({
   myId: null,

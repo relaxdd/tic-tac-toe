@@ -1,6 +1,6 @@
-import { IGameStore, useGameSelector } from '../store/gameStore.ts'
+import useGameStore, { useGameDispatch } from '../store/gameStore.ts'
 import GameService from '../service/GameService.ts'
-import useAppStore, { useAppSelector } from '../store/appStore.ts'
+import useAppStore, { useAppDispatch, useAppSelector } from '../store/appStore.ts'
 import scss from './modules/Board.module.scss'
 
 const Text = ({ gameRole }: { gameRole: string }) => {
@@ -13,13 +13,19 @@ const Text = ({ gameRole }: { gameRole: string }) => {
 }
 
 const Board = () => {
-  const arr: (keyof IGameStore)[] = ['gameRole', 'isStarted', 'myStep', 'board']
-  const { gameRole, isStarted, myStep, board } = useGameSelector(...arr)
-  const { myId, gameId } = useAppSelector('myId', 'gameId')
+  const { gameRole, isStarted, isMyStep, board, offline } = useGameStore()
+  const { myId, gameId, isConnected } = useAppSelector('myId', 'gameId', 'isConnected')
+  const appDispatch = useAppDispatch()
+  const gameDispatch = useGameDispatch()
   const pushAlert = useAppStore(s => s.pushAlert)
 
   async function onBoardClick(r: number, c: number) {
-    if (!myStep) {
+    if (offline) {
+      pushAlert('warning', 'Опонент по игре вышел из сети')
+      return
+    }
+
+    if (!isMyStep) {
       pushAlert('warning', 'Дождитесь пока сходит соперник')
       return
     }
@@ -29,7 +35,7 @@ const Board = () => {
       return
     }
 
-    if (board[r][c] !== null) return
+    if (board?.[r]?.[c] !== null) return
 
     await GameService.boardStep(r, c, myId, gameId)
   }
@@ -45,32 +51,58 @@ const Board = () => {
     }
   }
 
+  async function cancelGame() {
+    if (!myId || !gameId) return
+    await GameService.cancelGame(myId, gameId)
+
+    appDispatch({ gameId: null, isInGame: false })
+    gameDispatch({ gameRole: null, board: null, isMyStep: false, isStarted: false })
+  }
+
   if (!gameRole) return null
 
   return (
     <div className="text-center text-lg-left">
-      {!isStarted ?
-        <Text gameRole={gameRole}/>
+      {!isStarted ? (
+          <>
+            <Text gameRole={gameRole}/>
+            <input
+              type="button"
+              value="Отмена"
+              className="btn btn-secondary"
+              disabled={!isConnected}
+              onClick={cancelGame}
+            />
+          </>
+        )
         : (
           <>
             <div className={scss.board}>
-              {board?.map((row, r) => (
-                <div className={scss.boardRow} key={r}>
-                  {row.map((ceil, c) => (
-                    <span
-                      className={scss.boardCeil}
-                      onClick={() => onBoardClick(r, c)}
-                      key={c}
-                    >{getCeilText(ceil)}</span>
-                  ))}
-                </div>
-              ))}
+              {board !== null
+                ? board?.map((row, r) => (
+                  <div className={scss.boardRow} key={r}>
+                    {row.map((ceil, c) => (
+                      <span
+                        className={scss.boardCeil}
+                        onClick={() => onBoardClick(r, c)}
+                        key={c}
+                      >{getCeilText(ceil)}</span>
+                    ))}
+                  </div>
+                ))
+                : (
+                  <p className="text-danger">Ошибка игры, не удалось отрисовать доску!</p>
+                )}
             </div>
 
             <div>
               <p className={scss.text}>
-                {myStep ? 'Ваш ход' : 'Ход соперника'}
+                {isMyStep ? 'Ваш ход' : 'Ход соперника'}
               </p>
+
+              {offline && (
+                <span className="small text-danger">Опонент не в сети</span>
+              )}
             </div>
           </>
         )}

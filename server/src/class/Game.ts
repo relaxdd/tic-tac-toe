@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from 'uuid'
 import type { Ceil, GameDto, Pair, Players } from '../@types'
+import { inverse } from '../utils'
 
 class Game {
   public readonly id: string
@@ -8,18 +9,21 @@ class Game {
   public readonly password: string
   public readonly players: Players
   public readonly board: Ceil[][]
+
   public timer: NodeJS.Timeout | null = null
+  public whose: string
 
   private _started = false
 
-  public constructor(creator: string, name: string, size: number, password: string) {
+  public constructor(playerId: string, name: string, size: number, password: string) {
     this.id = uuidv4()
 
     this.name = name
     this.size = size
     this.password = password.trim()
+    this.whose = playerId
 
-    this.players = [creator, null]
+    this.players = [playerId, null]
     this.board = this.createBoard()
   }
 
@@ -37,7 +41,11 @@ class Game {
   }
 
   public step(playerId: string, [r, c]: Pair<number>) {
+    if (this.whose !== playerId) return false
+
     this.board![r]![c] = this.players[0] === playerId ? 1 : 0
+    this.whose = inverse(this.players as string[], playerId)!
+
     return this.board
   }
 

@@ -4,18 +4,18 @@ import Wrapper from './Wrapper.tsx'
 import Board from './Board.tsx'
 import Alerts from './Alerts.tsx'
 import Status from './Status.tsx'
-import GameService, { GameEvents } from '../service/GameService.ts'
+import GameService from '../service/GameService.ts'
 import useAppStore, { IStore, useAppDispatch, useAppSelector } from '../store/appStore.ts'
 import Password from './Password.tsx'
-import { defBoard, useGameDispatch, useGameSelector } from '../store/gameStore.ts'
-import { GameObj } from '../@types'
-import { lsRoleKey, lsStateKey } from '../vars.ts'
+import { useGameDispatch } from '../store/gameStore.ts'
+import { lsRoleKey } from '../vars.ts'
 import { isWinner } from '../utils.ts'
+import type { GameEvents } from '../@types'
+import { GameEventNames } from '../../../shared/@types/enums.ts'
 
 function App(): ReactNode {
   const arr: (keyof IStore)[] = ['isInGame', 'isConnected', 'myId']
   const { isInGame, isConnected } = useAppSelector(...arr)
-  const { gameRole } = useGameSelector('gameRole')
   const pushAlert = useAppStore(s => s.pushAlert)
   const appDispatch = useAppDispatch()
   const gameDispatch = useGameDispatch()
@@ -23,68 +23,64 @@ function App(): ReactNode {
   function clearBoard() {
     appDispatch({ gameId: null, isInGame: false })
     gameDispatch({
-      board: defBoard, myStep: false, isStarted: false, gameRole: null,
+      board: null, isMyStep: false, isStarted: false, gameRole: null, offline: false
     })
 
     localStorage.removeItem(lsRoleKey)
-    localStorage.removeItem(lsStateKey)
   }
 
   function onConnectOpen() {
     appDispatch({ isConnected: true })
   }
 
-  function onConnectEvent(data: GameEvents, id: string | null) {
+  function onConnectEvent(data: GameEvents) {
     switch (data?.event) {
-      case 'connect': {
-        const { isStarted, ...test } = data.body
-
-        appDispatch(test)
-        gameDispatch({ isStarted })
+      case GameEventNames.Offline:
+        gameDispatch({ offline: data.body })
         break
-      }
-      // Обновление списка игр
-      case 'update': {
-        if (id === null) {
-          pushAlert('error', 'Ошибка клиента, нет myId!')
-          return
+      case GameEventNames.Connect:
+        appDispatch(data.body.base)
+
+        if (data.body.game !== undefined) {
+          gameDispatch(data.body.game)
         }
 
-        const list = data.body as GameObj[]
-        const me = list.find(it => it.players.includes(id))
-
-        appDispatch({ games: list, isInGame: me !== undefined })
-
-        if (me !== undefined)
-          gameDispatch({ isStarted: me.players[1] !== null })
-
         break
-      }
-      // Обновление кол-ва игроков
-      case 'refresh':
+      case GameEventNames.Update:
+        appDispatch({ games: data.body })
+        break
+      case GameEventNames.Refresh:
         appDispatch({ players: data.body })
         break
-      case 'step': {
-        let obj = null
-
-        gameDispatch(prev => {
-          obj = { board: data.body, myStep: !prev.myStep }
-          return obj
+      case GameEventNames.Start:
+        gameDispatch({
+          isMyStep: data.body.role === 'server',
+          isStarted: true,
+          gameRole: data.body.role,
+          board: data.body.board
         })
 
-        localStorage.setItem(lsStateKey, JSON.stringify(obj))
+        if (data.body.role !== null)
+          localStorage.setItem(lsRoleKey, data.body.role)
+
         break
-      }
-      case 'close':
+      case GameEventNames.Step:
+        gameDispatch((prev) => ({
+          board: data.body, isMyStep: !prev.isMyStep,
+        }))
+
+        break
+      case GameEventNames.Close:
         pushAlert('warning', 'Игра окончена по причине бездействия одного из игроков')
         clearBoard()
         break
-      case 'end': {
+      case GameEventNames.Endgame: {
         const text = 'Результат игры: '
 
-        if (data.body === -1) {
+        if (data.body === -1)
           pushAlert('warning', text + 'Ничья!')
-        } else {
+        else {
+          // FIXME: Пофиксить потом
           const role = localStorage.getItem(lsRoleKey)
           const isWin = isWinner(role, data.body)
 
@@ -107,7 +103,7 @@ function App(): ReactNode {
       const error = 'Ошибка подключения к серверу, возможно он недоступен'
 
       pushAlert('error', error)
-      appDispatch({ players: 0, isInGame: false })
+      appDispatch({ players: 0, isInGame: false, games: [] })
 
       return
     }
@@ -116,28 +112,8 @@ function App(): ReactNode {
   }
 
   useEffect(() => {
-    async function load() {
-      await GameService.connect(onConnectOpen, onConnectEvent, onConnectError)
-    }
-
-    // async function focus() {
-    //   const check = await GameService.check()
-    //
-    //   if (check)
-    //     appDispatch(check)
-    //   else
-    //     pushAlert('error', 'При обновлении данных произошла ошибка!')
-    // }
-
-    window.addEventListener('load', load)
-    // window.addEventListener('focus', focus)
-
-    return () => {
-      window.removeEventListener('load', load)
-      // window.removeEventListener('focus', focus)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gameRole])
+    GameService.connect(onConnectOpen, onConnectEvent, onConnectError)
+  }, [])
 
   return (
     <>

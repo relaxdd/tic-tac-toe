@@ -81,7 +81,7 @@ class GameService {
 
   private static getPath() {
     if (window.location.hostname === 'localhost') {
-      return (window.location.port === '7000'
+      return (window.location.port !== '5173'
         ? window.location.href
         : 'http://localhost:7000/') + 'api'
     } else {

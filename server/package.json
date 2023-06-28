@@ -4,9 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "npx tsc",
+    "build": "webpack",
     "serve": "node dist/server/src/index.js",
     "start": "nodemon --watch \"src/**\" --ext \"ts,json\" --ignore \"src/**/*.spec.ts\" --exec \"ts-node src/index.ts\"",
+    "test": "ts-node src/index.ts",
     "dev": "concurrently \"npx tsc --watch\" \"nodemon -q dist/index.js\""
   },
   "author": "awenn2015",
@@ -20,6 +21,8 @@
     "uuid": "^9.0.0"
   },
   "devDependencies": {
+    "@babel/core": "^7.22.5",
+    "@babel/preset-env": "^7.22.5",
     "@types/body-parser": "^1.19.2",
     "@types/cookie-parser": "^1.4.3",
     "@types/events": "^3.0.0",
@@ -27,9 +30,14 @@
     "@types/express-form-data": "^2.0.2",
     "@types/node": "^20.3.1",
     "@types/uuid": "^9.0.2",
+    "babel-loader": "^9.1.2",
     "concurrently": "^8.2.0",
     "nodemon": "^2.0.22",
+    "terser-webpack-plugin": "^5.3.9",
+    "ts-loader": "^9.4.4",
     "ts-node": "^10.9.1",
-    "typescript": "^5.1.3"
+    "typescript": "^5.1.3",
+    "webpack": "^5.88.0",
+    "webpack-cli": "^5.1.4"
   }
 }

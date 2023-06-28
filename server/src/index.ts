@@ -3,11 +3,9 @@ import dotenv from 'dotenv'
 import path from 'path'
 import router from './router'
 import { IConfig } from './@types/config'
-import args, {showHelp} from './sys'
+import args, { showHelp } from './sys'
 
-if (args.isHelp) {
-  showHelp()
-}
+if (args.isHelp) showHelp()
 
 const envArg = args.env as string | undefined
 const envPath = envArg || (args.isProd ? '.env' : '../.env.development')

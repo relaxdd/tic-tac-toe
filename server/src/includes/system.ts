@@ -4,13 +4,13 @@ type ArgsSchema =
   | { key?: string, arg: string, required?: boolean, type: JSTypes }
   | { key?: string, arg: string, required?: boolean, type: 'number', integer: boolean }
 
-type Params = Partial<{
+type Params = {
   isHelp: boolean,
   isProd: boolean,
-  env: string,
-  port: number,
-  static: string
-}>
+  env?: string,
+  port?: number,
+  static?: string
+}
 
 function parseArg(arg: string) {
   const args = process.argv.slice(2)
@@ -51,7 +51,7 @@ function buildArgs(schema: ArgsSchema[]) {
       process.exit()
     }
 
-    acc[key] = val
+    acc[key] = it.type === 'boolean' && val === undefined ? false : val
     return acc
   }, {})
 }
@@ -65,6 +65,9 @@ const schema: ArgsSchema[] = [
 ]
 
 const args = buildArgs(schema) as Params
+
+console.log(args)
+process.exit()
 
 export function showHelp() {
   console.log(`

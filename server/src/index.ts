@@ -7,7 +7,7 @@ import args, { showHelp } from './includes/system'
 
 if (args.isHelp) showHelp()
 
-const envArg = args.env as string | undefined
+const envArg = args.env
 const envPath = envArg || (args.isProd ? '.env' : '../.env.development')
 
 dotenv.config({

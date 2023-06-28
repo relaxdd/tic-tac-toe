@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid'
 import type { Ceil, GameDto, Pair, Players } from '../@types'
-import { inverse } from '../utils'
+import { inverse } from '../includes/utils'
 
 class Game {
   public readonly id: string

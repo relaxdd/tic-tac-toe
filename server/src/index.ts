@@ -1,9 +1,9 @@
 import express from 'express'
 import dotenv from 'dotenv'
 import path from 'path'
-import router from './router'
+import router from './includes/router'
 import { IConfig } from './@types/config'
-import args, { showHelp } from './sys'
+import args, { showHelp } from './includes/system'
 
 if (args.isHelp) showHelp()
 

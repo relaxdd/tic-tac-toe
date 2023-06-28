@@ -1,8 +1,8 @@
 import express from 'express'
 import bodyParser from 'body-parser'
 import cookieParser from 'cookie-parser'
-import Controller from './class/Controller'
-import cors from './middlewares/cors'
+import Controller from '../class/Controller'
+import cors from '../middlewares/cors'
 
 const router = express.Router()
 const controller = new Controller()

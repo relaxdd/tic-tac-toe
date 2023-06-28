@@ -1,4 +1,4 @@
-import { Schema } from './@types'
+import { Schema } from '../@types'
 
 export function validateObject(
   data: any,

@@ -6,6 +6,13 @@ async function copyFiles() {
   const where = path.resolve(__dirname, '../deploy/public')
 
   try {
+    const check = await fse.pathExists(path.resolve(from, 'index.html'))
+
+    if (!check) {
+      console.warn('[Warning]: no path found to copy \'public\'')
+      return
+    }
+
     const exist = await fse.pathExists(where)
     if (exist) await fse.remove(where)
     await fse.copy(from, where, { overwrite: true })

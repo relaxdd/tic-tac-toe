@@ -4,12 +4,14 @@ import cookieParser from 'cookie-parser'
 import Controller from '../class/Controller'
 import cors from '../middlewares/cors'
 
+const allow = process.env?.['ALLOW']
+
 const router = express.Router()
 const controller = new Controller()
 
 router.use(bodyParser.json())
 router.use(cookieParser())
-router.use(cors({ origin: 'http://localhost:5173' }))
+if (allow) router.use(cors({ origin: allow }))
 
 router.get('/timers', (req, res) => controller.getTimers(req, res))
 router.get('/players', (req, res) => controller.getConnected(req, res))

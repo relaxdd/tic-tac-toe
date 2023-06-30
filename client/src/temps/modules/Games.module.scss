@@ -47,8 +47,8 @@
 .create {
   display: flex;
   flex-direction: column;
-  row-gap: 17px;
-  margin-top: 30px;
+  row-gap: 20px;
+  margin-top: 35px;
 
   &_form {
     display: flex;
@@ -59,6 +59,8 @@
   &_btn {
     display: flex;
     justify-content: flex-end;
+    gap: 12px;
+    flex-wrap: wrap-reverse;
   }
 }
 

@@ -131,6 +131,13 @@ const Games = (): ReactNode => {
 
         <div className={scss.create_btn}>
           <input
+            type="button"
+            className="btn btn-secondary"
+            value="Играть с ботом"
+            disabled
+          />
+
+          <input
             type="submit"
             className="btn btn-primary"
             value="Создать игру"

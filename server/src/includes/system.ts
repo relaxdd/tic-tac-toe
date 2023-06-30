@@ -66,9 +66,6 @@ const schema: ArgsSchema[] = [
 
 const args = buildArgs(schema) as Params
 
-console.log(args)
-process.exit()
-
 export function showHelp() {
   console.log(`
   Usage: --[options](= or space)[value] for <char> | <int> values or just --[options] is <bool>

@@ -1,22 +1,25 @@
-type BaseSchema = {
-  key: string;
-  additional?: ((val: any) => boolean)[];
+interface BaseSchema {
+  key: string,
+  additional?: ((val: any) => boolean)[]
 }
 
-type JSTypes = 'string' | 'number' | 'bigint' | 'boolean' | 'symbol' | 'undefined' | 'object' | 'function'
+type JSTypes = 'bigint' | 'boolean' | 'symbol' | 'undefined' | 'function'
+
+export type Schema =
+  | BaseSchema & { type: JSTypes }
+  | BaseSchema & { type: 'string', required?: boolean }
+  | BaseSchema & { type: 'object', array?: boolean }
+  | BaseSchema & { type: 'number', integer?: boolean }
+
+// *****************************
+
+export type Players = [string, string | null]
 
 interface GameFields {
   id: string;
   name: string;
   size: string;
 }
-
-export type Schema = BaseSchema & (
-  | { type: 'string', required: boolean, array?: undefined }
-  | { type: 'object', required?: undefined, array: boolean }
-  | { type: JSTypes, required?: undefined, array?: undefined })
-
-export type Players = [string, string | null]
 
 export type GameObj = GameFields & {
   password: string

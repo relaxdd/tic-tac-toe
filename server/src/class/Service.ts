@@ -2,6 +2,7 @@ import Game from './Game'
 import type { GameObj, Pair } from '../@types'
 import CustomEmitter from './CustomEmitter'
 import { EventsBody, GameState } from '../../../shared/@types'
+import MatchWinner from './MatchWinner'
 
 type ServiceResp =
   | { status: true }
@@ -182,14 +183,15 @@ class Service {
       return { status: false, error, code: 500 }
     }
 
-    const check = this.checkWinner(board)
+    const match = new MatchWinner(board, game.size)
+    const check = match.check()
 
     if (check.end)
       this.emitter.broadcast('endgame', game.players, check.winner)
     else {
       const isDrawn = !board.some(row => row.some(ceil => ceil === null))
 
-      // Игра продолжается
+      // ************* Игра продолжается *************
       if (!isDrawn) {
         game.timer?.refresh()
         return { status: true }
@@ -216,40 +218,6 @@ class Service {
 
     this.emitter.broadcast('close', game.players)
     this.emitter.broadcast('update', game.players, this.getGames())
-  }
-
-  // ******************************
-
-  private checkWinner(board: (null | 0 | 1)[][]): ({ end: false } | { end: true, winner: number | null }) {
-    let winner: number | null = null
-
-    const is = [0, 1].some((i) => {
-      if (!this.isSomeWin(board, i)) return false
-      winner = i
-      return true
-    })
-
-    return !is ? { end: false } : { end: true, winner }
-  }
-
-  private isSomeWin(board: (null | 0 | 1)[][], i: number) {
-    for (const row of board) {
-      const win = row.every(ceil => ceil === i)
-      if (win) return true
-    }
-
-    for (let col = 0; col < 3; col++) {
-      const win = board.every(row => row[col] === i)
-      if (win) return true
-    }
-
-    const dig1 = board?.[0]?.[0] === i && board?.[1]?.[1] === i && board?.[2]?.[2] === i
-    if (dig1) return true
-
-    const dig2 = board?.[0]?.[2] === i && board?.[1]?.[1] === i && board?.[2]?.[0] === i
-    if (dig2) return true
-
-    return false
   }
 }
 

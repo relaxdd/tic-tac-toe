@@ -1,4 +1,5 @@
 import { Schema } from '../@types'
+import { validateObject } from './utils'
 
 type SchemaKeys = 'create' | 'join' | 'step' | 'cancel'
 
@@ -32,6 +33,11 @@ const schemes: Record<SchemaKeys, Schema[]> = {
     { type: 'string', key: 'playerId', required: true },
     { type: 'string', key: 'gameId', required: true },
   ],
+}
+
+export function validateSchema(name: SchemaKeys, obj: any) {
+  const schema = schemes[name]
+  return validateObject(obj, schema)
 }
 
 export default schemes

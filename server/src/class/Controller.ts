@@ -1,7 +1,7 @@
 import { Request, Response } from 'express'
 import Service from './Service'
 import { validateObject } from '../includes/utils'
-import schemes from '../includes/schemes'
+import schemes, { validateSchema } from '../includes/schemes'
 import { v4 as uuidv4 } from 'uuid'
 import { BoardState, EventsBody, GameObj } from '../../../shared/@types'
 import { GameEventNames } from '../../../shared/@types/enums'
@@ -194,9 +194,8 @@ class Controller {
 
   // @Post
   public cancelGame(req: Request, res: Response) {
-    const schema = schemes.cancel
     const body = req?.body || {}
-    const validate = validateObject(body, schema)
+    const validate = validateSchema('cancel', body)
 
     if (!validate)
       return res.status(400).json({ error: 'Bad Request' })
@@ -210,10 +209,9 @@ class Controller {
 
   // @Post
   public createGame(req: Request, res: Response) {
-    const schema = schemes.create
-    const player = req.query?.['player']
     const body = req?.body || {}
-    const validate = validateObject(body, schema)
+    const validate = validateSchema('create', body)
+    const player = req.query?.['player']
 
     if (!validate || typeof player !== 'string')
       return res.status(400).json({ error: 'Bad Request' })
@@ -232,9 +230,8 @@ class Controller {
 
   // @Post
   public joinToGame(req: Request, res: Response) {
-    const schema = schemes.join
     const body = req?.body || {}
-    const validate = validateObject(body, schema)
+    const validate = validateSchema('join', body)
 
     if (!validate) return res.status(400).end()
     const is = this.service.joinToGame(body)
@@ -248,9 +245,8 @@ class Controller {
 
   // @Post
   public doStep(req: Request, res: Response) {
-    const schema = schemes.step
     const body = req?.body || {}
-    const validate = validateObject(body, schema)
+    const validate = validateSchema('step', body)
 
     if (!validate) return res.status(400).end()
     const is = this.service.boardStep(body)

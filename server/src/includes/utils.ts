@@ -4,7 +4,7 @@ export function validateObject(
   data: any,
   schema: Schema[],
 ) {
-  if (typeof data !== 'object') return false
+  if (typeof data !== 'object' || data === null) return false
 
   const typeUnits = (obj: Schema): boolean => {
     switch (obj.type) {

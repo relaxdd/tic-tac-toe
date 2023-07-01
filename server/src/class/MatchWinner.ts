@@ -6,38 +6,62 @@ type WinnerInfo =
 
 type Pair<T = any> = [T, T]
 type Triple<T = any> = [T, T, T]
+type BoardSizes = '3x3' | '4x4' | '5x5'
+type BoardMap = { size: number, path: BoardSizes }[]
+type DigCoordsMap = Record<BoardSizes, Triple<Pair<number>>[]>
 
 const Num = 3
 
-const Dig1: Triple<Pair<number>>[] = [
-  [[0, 0], [1, 1], [2, 2]],
-  [[0, 1], [1, 2], [2, 3]],
+const Dig1: DigCoordsMap = {
+  '3x3': [
+    [[0, 0], [1, 1], [2, 2]],
+  ],
+  '4x4': [
+    [[0, 0], [1, 1], [2, 2]],
+    [[0, 1], [1, 2], [2, 3]],
+    [[1, 0], [2, 1], [3, 2]],
+    [[1, 1], [2, 2], [3, 3]],
+  ],
+  '5x5': [
+    [[0, 0], [1, 1], [2, 2]],
+    [[0, 1], [1, 2], [2, 3]],
+    [[0, 2], [1, 3], [2, 4]],
+    [[1, 0], [2, 1], [3, 2]],
+    [[1, 1], [2, 2], [3, 3]],
+    [[1, 2], [2, 3], [3, 4]],
+    [[2, 0], [3, 1], [4, 2]],
+    [[2, 1], [3, 2], [4, 3]],
+    [[2, 2], [3, 3], [4, 4]],
+  ],
+}
 
-  [[1, 0], [2, 1], [3, 2]],
-  [[1, 1], [2, 2], [3, 3]],
-]
+const Dig2: DigCoordsMap = {
+  '3x3': [
+    [[0, 2], [1, 1], [2, 0]],
+  ],
+  '4x4': [
+    [[0, 2], [1, 1], [2, 0]],
+    [[0, 3], [1, 2], [2, 1]],
+    [[1, 2], [2, 1], [3, 0]],
+    [[1, 3], [2, 2], [3, 1]],
+  ],
+  '5x5': [
+    [[0, 2], [1, 1], [2, 0]],
+    [[0, 3], [1, 2], [2, 1]],
+    [[0, 4], [1, 3], [2, 2]],
+    [[1, 2], [2, 1], [3, 0]],
+    [[1, 3], [2, 2], [3, 1]],
+    [[1, 4], [2, 3], [3, 2]],
+    [[2, 2], [3, 1], [4, 0]],
+    [[2, 3], [3, 2], [4, 1]],
+    [[2, 4], [3, 3], [4, 2]],
+  ],
+}
 
-// [1, 4, 9, 16]
-// const test = [1, 4, 9, 16]
-//
-// const val = (() => {
-//   const init: Triple<Pair<number>>[] = [
-//     [[0, 0], [1, 1], [2, 2]]
-//   ]
-//
-//   for (let i = 0; i < test[1]! - 1; i++) {
-//     init.push(init[0]!.map(it => [it[0], it[1]+1]))
-//   }
-//
-//   return init
-// })()
-
-const Dig2: Triple<Pair<number>>[] = [
-  [[0, 2], [1, 1], [2, 0]],
-  [[0, 3], [1, 2], [2, 1]],
-
-  [[1, 2], [2, 1], [3, 0]],
-  [[1, 3], [2, 2], [3, 1]],
+const sizes: BoardMap = [
+  { size: 3, path: '3x3' },
+  { size: 4, path: '4x4' },
+  { size: 5, path: '5x5' },
 ]
 
 function every<T = any>(arr: T[], cb: (it: T) => boolean, offset?: number): boolean {
@@ -50,6 +74,8 @@ function every<T = any>(arr: T[], cb: (it: T) => boolean, offset?: number): bool
 
   return true
 }
+
+// ************************
 
 class MatchWinner {
   private readonly board: Board
@@ -91,10 +117,12 @@ class MatchWinner {
       return false
     }
 
-    const byDig = (dig: Triple<Pair<number>>[]) => {
+    const byDig = (dig: DigCoordsMap) => {
+      const key = sizes.find(it => it.size === this.size)!.path
+
       return this.size === 3
-        ? this.dig(match, dig[0]!)
-        : dig.some(it => this.dig(match, it))
+        ? this.dig(match, dig[key][0]!)
+        : dig[key].some(it => this.dig(match, it))
     }
 
     // ********* Смотрим победу по строкам ********* //

@@ -8,14 +8,18 @@ const Wrapper = ({ children }: { children: ReactNode }) => {
   return (
     <div className="container-lg">
       <div className="row">
-        <div className="col-12 col-lg-8">
-          <h3 className={scss.appTitle}>Tic Tac Toe</h3>
+        <div className="col-12 col-lg-10 col-xl-8">
+
 
           <div className="row flex-column-reverse justify-content-lg-between flex-lg-row">
-            <div className="col-12 col-lg-3">
+            <div id={scss.appLeftWrap} className="col-12 col-lg-3">
               <span className={scss.appLeftText}>Всего в сети: {players}</span>
             </div>
-            <div className="col-12 col-lg-8">{children}</div>
+
+            <div className="col-12 col-lg-8">
+              <h3 className={scss.appTitle}>Tic Tac Toe</h3>
+              {children}
+            </div>
           </div>
         </div>
       </div>

@@ -3,6 +3,11 @@ import bodyParser from 'body-parser'
 import cookieParser from 'cookie-parser'
 import Controller from '../class/Controller'
 import cors from '../middlewares/cors'
+import args from './system'
+import configure from './configure'
+import path from 'path'
+
+configure(args, path.resolve(__dirname, '../'))
 
 const allow = process.env?.['ALLOW']
 
@@ -11,7 +16,10 @@ const controller = new Controller()
 
 router.use(bodyParser.json())
 router.use(cookieParser())
-if (allow) router.use(cors({ origin: allow }))
+
+if (allow) {
+  router.use(cors({ origin: allow }))
+}
 
 router.get('/timers', (req, res) => controller.getTimers(req, res))
 router.get('/players', (req, res) => controller.getConnected(req, res))

@@ -4,7 +4,7 @@ type ArgsSchema =
   | { key?: string, arg: string, required?: boolean, type: JSTypes }
   | { key?: string, arg: string, required?: boolean, type: 'number', integer: boolean }
 
-type Params = {
+export type ArgsParams = {
   isHelp: boolean,
   isProd: boolean,
   env?: string,
@@ -64,7 +64,7 @@ const schema: ArgsSchema[] = [
   { arg: 'static', type: 'string' },
 ]
 
-const args = buildArgs(schema) as Params
+const args = buildArgs(schema) as ArgsParams
 
 export function showHelp() {
   console.log(`

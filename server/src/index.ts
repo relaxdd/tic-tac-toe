@@ -1,18 +1,13 @@
 import express from 'express'
-import dotenv from 'dotenv'
 import path from 'path'
 import router from './includes/router'
 import { IConfig } from './@types/config'
 import args, { showHelp } from './includes/system'
+import configure from './includes/configure'
 
 if (args.isHelp) showHelp()
 
-const envArg = args.env
-const envPath = envArg || (args.isProd ? '.env' : '../.env.development')
-
-dotenv.config({
-  path: path.resolve(__dirname, envPath),
-})
+configure(args, __dirname)
 
 const config: IConfig = {
   isProd: Boolean(args.isProd),

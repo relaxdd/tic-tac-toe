@@ -23,6 +23,7 @@ function configureEnv(rootDirs: [string, string]) {
     mode: { type: 'string', string: true, choices: ['development', 'production'], default: 'development' },
     deploy: { type: 'boolean', default: false },
     public: { type: 'boolean', default: false },
+    expose: { type: 'boolean', default: false },
   }).parseSync()
 
   const IS_DEV = argv.mode === 'development'
@@ -44,7 +45,8 @@ function configureEnv(rootDirs: [string, string]) {
     IS_DEV, IS_PROD,
     PORT: Number(argv.port || process.env?.['PORT'] || 3000),
     ROOT_DIR,
-    WITH_PUBLIC: argv.public
+    WITH_PUBLIC: argv.public,
+    EXPOSE: argv.expose
   }
 }
 

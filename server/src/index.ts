@@ -16,6 +16,10 @@ if (!ENV.WITH_PUBLIC && !fs.existsSync(path.join(ENV.ROOT_DIR, 'public'))) {
   process.exit(1)
 }
 
+const listenCb = () => {
+  console.log(`[Express]: Server is running at ${ENV.PORT} port`)
+}
+
 function main() {
   const app = express()
   const clientUrl = process.env?.['CLIENT_URL']
@@ -30,9 +34,8 @@ function main() {
   app.use(errors())
   app.use(errorHandler)
 
-  app.listen(ENV.PORT, '0.0.0.0', () => {
-    console.log(`[Express]: Server is running at ${ENV.PORT} port`)
-  })
+  if (!ENV.EXPOSE) app.listen(ENV.PORT, listenCb)
+  else app.listen(ENV.PORT, '0.0.0.0', listenCb)
 }
 
 try {

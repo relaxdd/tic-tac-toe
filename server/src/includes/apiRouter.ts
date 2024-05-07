@@ -8,20 +8,21 @@ import {
 } from './schemes'
 
 function apiRouter() {
-  const router = Router()
+  const apiRouter = Router()
   const controller = new Controller()
 
-  router.get('/timers', controller.getTimerIds.bind(Controller))
-  router.get('/players', controller.getConnected.bind(Controller))
-  router.get('/connect', controller.connect)
-  router.get('/games', validateGetGamesSchema, controller.getGames.bind(Controller))
+  apiRouter.get('/timers', controller.getTimerIds.bind(controller))
+  apiRouter.get('/players', controller.getConnected.bind(controller))
+  apiRouter.get('/connect', controller.connect.bind(controller))
 
-  router.post('/cancel', validateCancelGameSchema, controller.cancelGame.bind(Controller))
-  router.post('/create', validateCreateGameSchema, controller.createGame.bind(Controller))
-  router.post('/join', validateJoinToGameSchema, controller.joinToGame.bind(Controller))
-  router.post('/step', validateDoNextStepSchema, controller.doNextStep.bind(Controller))
+  apiRouter.get('/games', validateGetGamesSchema, controller.getGames.bind(controller))
 
-  return router
+  apiRouter.post('/cancel', validateCancelGameSchema, controller.cancelGame.bind(controller))
+  apiRouter.post('/create', validateCreateGameSchema, controller.createGame.bind(controller))
+  apiRouter.post('/join', validateJoinToGameSchema, controller.joinToGame.bind(controller))
+  apiRouter.post('/step', validateDoNextStepSchema, controller.doNextStep.bind(controller))
+
+  return apiRouter
 }
 
 export default apiRouter

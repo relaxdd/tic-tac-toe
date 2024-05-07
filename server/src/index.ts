@@ -6,6 +6,7 @@ import fs from 'fs'
 import path from 'path'
 import apiRouter from './includes/apiRouter'
 import configureEnv from './includes/configureEnv'
+import { errors } from 'celebrate'
 import errorHandler from './middlewares/errorHandler'
 
 export const ENV = configureEnv([process.cwd(), __dirname])
@@ -20,17 +21,16 @@ function main() {
   const clientUrl = process.env?.['CLIENT_URL']
   const publicDir = path.join(ENV.ROOT_DIR, 'public')
 
-  if (clientUrl) {
-    app.use(cors({ origin: clientUrl }))
-  }
+  if (clientUrl) app.use(cors({ origin: clientUrl }))
+  if (fs.existsSync(publicDir)) app.use(express.static(publicDir))
 
-  app.use(express.static(publicDir))
   app.use(bodyParser.json())
   app.use(cookieParser())
   app.use('/api', apiRouter())
-  // app.use(errorHandler)
+  app.use(errors())
+  app.use(errorHandler)
 
-  app.listen(ENV.PORT, () => {
+  app.listen(ENV.PORT, '0.0.0.0', () => {
     console.log(`[Express]: Server is running at ${ENV.PORT} port`)
   })
 }

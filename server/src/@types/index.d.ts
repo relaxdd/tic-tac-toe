@@ -7,7 +7,7 @@ interface GameFields {
 }
 
 export type GameObj = GameFields & {
-  password?: string
+  password: string
 }
 
 export type GameDto = GameFields & {

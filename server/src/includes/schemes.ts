@@ -8,12 +8,12 @@ interface PlayerAndGameId {
 
 export interface CreateGameSchema {
   query: {
-    playerId: string
+    player: string
   },
   body: {
     name: string,
     size: string,
-    password?: string
+    password: string
   }
 }
 
@@ -25,7 +25,7 @@ export interface DoNextStepBody extends PlayerAndGameId {
 }
 
 export interface JoinToGameBody extends PlayerAndGameId {
-  password?: string
+  password: string
 }
 
 export interface GetGamesQuery {
@@ -46,24 +46,14 @@ const validateGetGamesSchema = celebrate<ParamsDictionary, any, any, GetGamesQue
   }),
 })
 
-function validateSize(value: string, helpers: Joi.CustomHelpers<string>) {
-  const split = value.split('x')
-
-  if (!(new Set(split).size === split.length)) {
-    return helpers.error('Incorrect board size')
-  }
-
-  return value
-}
-
-const validateCreateGameSchema = celebrate<CreateGameSchema['query'], any, CreateGameSchema['body']>({
+const validateCreateGameSchema = celebrate<ParamsDictionary, any, CreateGameSchema['body'], CreateGameSchema['query']>({
   query: Joi.object<CreateGameSchema['query'], true>({
-    playerId: uuidSchema,
+    player: uuidSchema,
   }),
   body: Joi.object<CreateGameSchema['body'], true>({
     name: Joi.string().required(),
-    size: Joi.string().required().custom(validateSize),
-    password: Joi.string().optional(),
+    size: Joi.string().valid('3x3', '4x4', '5x5').required(),
+    password: Joi.string().allow('').required(),
   }),
 })
 
@@ -82,7 +72,7 @@ const validateDoNextStepSchema = celebrate<ParamsDictionary, any, DoNextStepBody
 
 const validateJoinToGameSchema = celebrate<ParamsDictionary, any, JoinToGameBody>({
   body: playerAndGameIdSchema.append({
-    password: Joi.string().optional(),
+    password: Joi.string().allow('').required(),
   }),
 })
 

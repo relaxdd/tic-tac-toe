@@ -43,8 +43,10 @@ class Service {
       return it.id === obj.gameId && it.players.includes(obj.playerId)
     })
 
+    console.log(this._games)
+
     if (!find) {
-      throw new ApiError('Bad Request', 400)
+      throw new ApiError('Не удалось найти игру', 400)
     }
 
     this.removeGameById(obj.gameId)
@@ -52,9 +54,7 @@ class Service {
   }
 
   public getGames(all = false) {
-    return (all ? this._games
-        : this._games.filter(it => !it.started && it.players[1] === null)
-    ).map(it => it.toObject())
+    return (all ? this._games : this._games.filter(it => !it.started && it.players[1] === null)).map(it => it.toObject())
   }
 
   public isInGame(id: string): { gameId: string, state: GameState } | undefined {
@@ -123,7 +123,7 @@ class Service {
     }
 
     if (game.password && obj.password !== game.password) {
-      const error = 'Введен неверный пароль!'
+      const error = 'Введен неверный пароль'
       throw new ApiError(error, 400)
     }
 
@@ -155,14 +155,14 @@ class Service {
     })
 
     if (!game) {
-      const error = 'Игра с такими id не найдена!'
+      const error = 'Игра с такими id не найдена'
       throw new ApiError(error, 404)
     }
 
     const board = game.step(obj.playerId, obj.pos)
 
     if (board === false) {
-      const error = 'Сейчас ходит другой игрок!'
+      const error = 'Сейчас ходит другой игрок'
       throw new ApiError(error, 400)
     }
 
@@ -173,7 +173,7 @@ class Service {
       this.removeGameById(game.id)
       this.emitter.broadcast('update', players, this.getGames())
 
-      const error = 'Ошибка игры, не определен 2 игрок!'
+      const error = 'Ошибка игры, не определен 2 игрок'
       throw new ApiError(error, 500)
     }
 
@@ -199,7 +199,7 @@ class Service {
     const is = this.removeGameById(game.id)
 
     if (!is) {
-      const error = 'Во время удаления игры произошла ошибка!'
+      const error = 'Во время удаления игры произошла ошибка'
       throw new ApiError(error, 500)
     }
 

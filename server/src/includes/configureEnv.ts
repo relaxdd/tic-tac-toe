@@ -31,7 +31,11 @@ function configureEnv(rootDirs: [string, string]) {
   const ENV_PATH = getEnvPath(ROOT_DIR, IS_PROD)
 
   if (ENV_PATH) {
-    config({ path: ENV_PATH, debug: IS_DEV })
+    config({
+      path: ENV_PATH,
+      encoding: 'utf-8',
+      debug: IS_DEV,
+    })
   }
 
   return {

@@ -5,6 +5,7 @@ import { CancelGameBody, CreateGameSchema, DoNextStepBody, GetGamesQuery, JoinTo
 import { v4 as uuidv4 } from 'uuid'
 import { BoardState, EventsBody, GameObj } from '../../../shared/@types'
 import { GameEventNames } from '../../../shared/@types/enums'
+import ApiError from './ApiError'
 
 class Controller {
   private service: Service
@@ -13,33 +14,6 @@ class Controller {
 
   public constructor() {
     this.service = new Service()
-
-    this.connect.bind(this)
-  }
-
-  public getTimerIds(_: Request, res: Response, next: NextFunction) {
-    try {
-      return res.json(this.timers.map(it => it.id))
-    } catch (err) {
-      return next(err)
-    }
-  }
-
-  public getConnected(_: Request, res: Response, next: NextFunction) {
-    try {
-      return res.json(this.service.players)
-    } catch (err) {
-      return next(err)
-    }
-  }
-
-  public getGames(req: Request<any, any, any, GetGamesQuery>, res: Response, next: NextFunction) {
-    try {
-      const all = 'all' in req.query
-      return res.json(this.service.getGames(all))
-    } catch (err) {
-      return next(err)
-    }
   }
 
   public connect(req: Request, res: Response, next: NextFunction) {
@@ -185,6 +159,31 @@ class Controller {
     }
   }
 
+  public getTimerIds(_: Request, res: Response, next: NextFunction) {
+    try {
+      return res.json(this.timers.map(it => it.id))
+    } catch (err) {
+      return next(err)
+    }
+  }
+
+  public getConnected(_: Request, res: Response, next: NextFunction) {
+    try {
+      return res.json(this.service.players)
+    } catch (err) {
+      return next(err)
+    }
+  }
+
+  public getGames(req: Request<any, any, any, GetGamesQuery>, res: Response, next: NextFunction) {
+    try {
+      const all = 'all' in req.query
+      return res.json(this.service.getGames(all))
+    } catch (err) {
+      return next(err)
+    }
+  }
+
   public cancelGame(req: Request<any, any, CancelGameBody>, res: Response, next: NextFunction) {
     try {
       this.service.cancelGame(req.body)
@@ -195,17 +194,17 @@ class Controller {
   }
 
   public createGame(
-    req: Request<CreateGameSchema['query'], any, CreateGameSchema['body']>,
+    req: Request<any, any, CreateGameSchema['body'], CreateGameSchema['query']>,
     res: Response,
     next: NextFunction,
   ) {
     try {
-      const player = String(req.query?.['playerId'])
+      const player = String(req.query.player)
       const gameId = this.service.createGame(player, req.body)
 
       if (!gameId) {
-        const error = 'Игра с таким именем уже существует!'
-        return res.status(400).json({ error })
+        const error = 'Игра с таким именем уже существует'
+        return next(new ApiError(error, 400))
       }
 
       this.service.emitter.broadcastAll('update', [player], this.service.getGames())

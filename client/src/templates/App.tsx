@@ -4,17 +4,18 @@ import Wrapper from './Wrapper.tsx'
 import Board from './Board.tsx'
 import Alerts from './Alerts.tsx'
 import Status from './Status.tsx'
-import GameService from '../service/GameService.ts'
+import GameApiService from '../service/GameApiService.ts'
 import useAppStore, { IStore, useAppDispatch, useAppSelector } from '../store/appStore.ts'
 import Password from './Password.tsx'
 import { useGameDispatch } from '../store/gameStore.ts'
-import { lsRoleKey } from '../vars.ts'
+import { lsRoleKey } from '../defines.ts'
 import { isWinner } from '../utils.ts'
 import type { GameEvents } from '../@types'
 import { GameEventNames } from '../../../shared/@types/enums.ts'
 
+const arr: (keyof IStore)[] = ['isInGame', 'isConnected', 'myId']
+
 function App(): ReactNode {
-  const arr: (keyof IStore)[] = ['isInGame', 'isConnected', 'myId']
   const { isInGame, isConnected } = useAppSelector(...arr)
   const pushAlert = useAppStore(s => s.pushAlert)
   const appDispatch = useAppDispatch()
@@ -112,7 +113,7 @@ function App(): ReactNode {
   }
 
   useEffect(() => {
-    GameService.connect(onConnectOpen, onConnectEvent, onConnectError)
+    GameApiService.connect(onConnectOpen, onConnectEvent, onConnectError)
   }, [])
 
   return (

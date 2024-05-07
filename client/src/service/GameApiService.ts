@@ -2,7 +2,7 @@ import { GameEvents, RespOrError } from '../@types'
 import axios, { AxiosError } from 'axios'
 import { GameDto } from '../../../shared/@types'
 
-class GameService {
+class GameApiService {
   public static api = this.getPath()
   public static count = 0
   public static client = axios.create({ baseURL: this.api })
@@ -90,4 +90,4 @@ class GameService {
   }
 }
 
-export default GameService
+export default GameApiService

@@ -1,6 +1,6 @@
 import { FormEvent, ReactNode, useState } from 'react'
-import GameService from '../service/GameService.ts'
-import { lsGameKey, lsRoleKey, sizes } from '../vars.ts'
+import GameApiService from '../service/GameApiService.ts'
+import { lsGameKey, lsRoleKey, sizes } from '../defines.ts'
 import useAppStore, { IStore, useAppDispatch, useAppSelector } from '../store/appStore.ts'
 import useGameStore, { useGameDispatch } from '../store/gameStore.ts'
 import scss from './modules/Games.module.scss'
@@ -29,7 +29,7 @@ const Games = (): ReactNode => {
       return
     }
 
-    const is = await GameService.createGame(myId, obj as GameDto)
+    const is = await GameApiService.createGame(myId, obj as GameDto)
     setLoading(false)
 
     if (!is.status) {
@@ -60,7 +60,7 @@ const Games = (): ReactNode => {
       return
     }
 
-    const result = await GameService.joinToGame(gameId, myId)
+    const result = await GameApiService.joinToGame(gameId, myId)
 
     if (!result.status) {
       const def = 'Не удалось присоединиться к игре!'

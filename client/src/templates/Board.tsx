@@ -1,5 +1,5 @@
 import useGameStore, { useGameDispatch } from '../store/gameStore.ts'
-import GameService from '../service/GameService.ts'
+import GameApiService from '../service/GameApiService.ts'
 import useAppStore, { useAppDispatch, useAppSelector } from '../store/appStore.ts'
 import scss from './modules/Board.module.scss'
 
@@ -37,7 +37,7 @@ const Board = () => {
 
     if (board?.[r]?.[c] !== null) return
 
-    await GameService.boardStep(r, c, myId, gameId)
+    await GameApiService.boardStep(r, c, myId, gameId)
   }
 
   function getCeilText(val: null | 0 | 1) {
@@ -53,7 +53,7 @@ const Board = () => {
 
   async function cancelGame() {
     if (!myId || !gameId) return
-    await GameService.cancelGame(myId, gameId)
+    await GameApiService.cancelGame(myId, gameId)
 
     appDispatch({ gameId: null, isInGame: false })
     gameDispatch({ gameRole: null, board: null, isMyStep: false, isStarted: false })

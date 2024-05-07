@@ -1,32 +1,43 @@
+import bodyParser from 'body-parser'
+import cookieParser from 'cookie-parser'
+import cors from 'cors'
 import express from 'express'
+import fs from 'fs'
 import path from 'path'
-import router from './includes/router'
-import { IConfig } from './@types/config'
-import args, { showHelp } from './includes/system'
-import configure from './includes/configure'
+import apiRouter from './includes/apiRouter'
+import configureEnv from './includes/configureEnv'
+import errorHandler from './middlewares/errorHandler'
 
-if (args.isHelp) showHelp()
+export const ENV = configureEnv([process.cwd(), __dirname])
 
-configure(args, __dirname)
-
-const config: IConfig = {
-  isProd: Boolean(args.isProd),
-  port: Number(args?.port || process.env?.['PORT'] || 80),
-  static: args?.static ? String(args.static) : process.env?.['STATIC'],
+if (!ENV.WITH_PUBLIC && !fs.existsSync(path.join(ENV.ROOT_DIR, 'public'))) {
+  console.error('[Error]: The \'public\' directory is not specified')
+  process.exit(1)
 }
 
-if (!config.static) {
-  console.error('[Error]: The \'static\' directory is not specified')
-  process.exit(0)
+function main() {
+  const app = express()
+  const clientUrl = process.env?.['CLIENT_URL']
+  const publicDir = path.join(ENV.ROOT_DIR, 'public')
+
+  if (clientUrl) {
+    app.use(cors({ origin: clientUrl }))
+  }
+
+  app.use(express.static(publicDir))
+  app.use(bodyParser.json())
+  app.use(cookieParser())
+  app.use('/api', apiRouter())
+  // app.use(errorHandler)
+
+  app.listen(ENV.PORT, () => {
+    console.log(`[Express]: Server is running at ${ENV.PORT} port`)
+  })
 }
 
-const __public = path.resolve(__dirname, config.static)
-
-const server = express()
-
-server.use(express.static(__public))
-server.use('/api', router)
-
-server.listen(config.port, () => {
-  console.log(`[server]: Server is running at ${config.port} port`)
-})
+try {
+  main()
+} catch (err) {
+  console.error(err)
+  process.exit(1)
+}

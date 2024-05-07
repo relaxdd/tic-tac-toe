@@ -8,8 +8,8 @@ module.exports = {
   entry: "./src/index.ts",
   watch: false,
   output: {
-    path: path.resolve(__dirname, "../deploy"),
-    filename: "app.js",
+    path: path.resolve(__dirname, "deploy"),
+    filename: "app.bundle.js",
   },
   optimization: {
     minimize: true,

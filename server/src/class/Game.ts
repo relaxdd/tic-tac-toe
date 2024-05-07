@@ -6,7 +6,7 @@ class Game {
   public readonly id: string
   public readonly name: string
   public readonly size: number
-  public readonly password: string
+  public readonly password: string|null
   public readonly players: Players
   public readonly board: Ceil[][]
 
@@ -15,12 +15,12 @@ class Game {
 
   private _started = false
 
-  public constructor(playerId: string, name: string, size: number, password: string) {
+  public constructor(playerId: string, name: string, size: number, password?: string) {
     this.id = uuidv4()
 
     this.name = name
     this.size = size
-    this.password = password.trim()
+    this.password = password ? password.trim() : null
     this.whose = playerId
 
     this.players = [playerId, null]

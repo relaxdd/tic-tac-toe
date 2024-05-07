@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { createSelector, StoreWithDispatch } from './index.ts'
 import Random from '../class/Random.ts'
-import { lsGameKey } from '../vars.ts'
+import { lsGameKey } from '../defines.ts'
 import { GameObj } from '../../../shared/@types'
 
 export type AlertTypes = 'success' | 'warning' | 'error'

@@ -1,43 +1,95 @@
-import { Schema } from '../@types'
-import { validateObject } from './utils'
+import { celebrate, Joi } from 'celebrate'
+import { ParamsDictionary } from 'express-serve-static-core'
 
-type SchemaKeys = 'create' | 'join' | 'step' | 'cancel'
-
-const schemes: Record<SchemaKeys, Schema[]> = {
-  create: [
-    { type: 'string', key: 'name', required: true },
-    { type: 'string', key: 'password' },
-    {
-      type: 'string',
-      key: 'size',
-      required: true,
-      additional: [
-        function (val: string) {
-          const split = val.split('x')
-          return !(new Set(split).size === split.length)
-        },
-      ],
-    },
-  ],
-  join: [
-    { type: 'string', key: 'gameId', required: true },
-    { type: 'string', key: 'playerId', required: true },
-    { type: 'string', key: 'password' },
-  ],
-  step: [
-    { type: 'object', key: 'pos', array: true },
-    { type: 'string', key: 'playerId', required: true },
-    { type: 'string', key: 'gameId', required: true },
-  ],
-  cancel: [
-    { type: 'string', key: 'playerId', required: true },
-    { type: 'string', key: 'gameId', required: true },
-  ],
+interface PlayerAndGameId {
+  playerId: string,
+  gameId: string
 }
 
-export function validateSchema(name: SchemaKeys, obj: any) {
-  const schema = schemes[name]
-  return validateObject(obj, schema)
+export interface CreateGameSchema {
+  query: {
+    playerId: string
+  },
+  body: {
+    name: string,
+    size: string,
+    password?: string
+  }
 }
 
-export default schemes
+export interface CancelGameBody extends PlayerAndGameId {
+}
+
+export interface DoNextStepBody extends PlayerAndGameId {
+  pos: [number, number]
+}
+
+export interface JoinToGameBody extends PlayerAndGameId {
+  password?: string
+}
+
+export interface GetGamesQuery {
+  all?: string
+}
+
+// *****************************
+
+const uuidSchema = Joi.string().uuid({ version: 'uuidv4' }).required()
+
+const playerAndGameIdSchema = Joi.object<PlayerAndGameId, true>({
+  playerId: uuidSchema, gameId: uuidSchema,
+})
+
+const validateGetGamesSchema = celebrate<ParamsDictionary, any, any, GetGamesQuery>({
+  query: Joi.object({
+    all: Joi.string().optional(),
+  }),
+})
+
+function validateSize(value: string, helpers: Joi.CustomHelpers<string>) {
+  const split = value.split('x')
+
+  if (!(new Set(split).size === split.length)) {
+    return helpers.error('Incorrect board size')
+  }
+
+  return value
+}
+
+const validateCreateGameSchema = celebrate<CreateGameSchema['query'], any, CreateGameSchema['body']>({
+  query: Joi.object<CreateGameSchema['query'], true>({
+    playerId: uuidSchema,
+  }),
+  body: Joi.object<CreateGameSchema['body'], true>({
+    name: Joi.string().required(),
+    size: Joi.string().required().custom(validateSize),
+    password: Joi.string().optional(),
+  }),
+})
+
+const validateCancelGameSchema = celebrate<ParamsDictionary, any, CancelGameBody>({
+  body: playerAndGameIdSchema,
+})
+
+const validateDoNextStepSchema = celebrate<ParamsDictionary, any, DoNextStepBody>({
+  body: playerAndGameIdSchema.append({
+    pos: Joi.array().items(
+      Joi.number().integer().min(0).required(),
+      Joi.number().integer().min(0).required(),
+    ),
+  }),
+})
+
+const validateJoinToGameSchema = celebrate<ParamsDictionary, any, JoinToGameBody>({
+  body: playerAndGameIdSchema.append({
+    password: Joi.string().optional(),
+  }),
+})
+
+export {
+  validateGetGamesSchema,
+  validateCreateGameSchema,
+  validateCancelGameSchema,
+  validateDoNextStepSchema,
+  validateJoinToGameSchema,
+}

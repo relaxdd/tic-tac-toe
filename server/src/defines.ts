@@ -1,0 +1,1 @@
+export const cookieKey = '_awenn2015_tictactoe_playerid'

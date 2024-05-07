@@ -1,9 +1,9 @@
 import { FormEvent, useRef, useState } from 'react'
 import { Button, Modal } from 'react-bootstrap'
 import { useAppDispatch, useAppSelector } from '../store/appStore.ts'
-import GameService from '../service/GameService.ts'
+import GameApiService from '../service/GameApiService.ts'
 import useRequest from '../hooks/useRequest.tsx'
-import { lsGameKey, lsRoleKey } from '../vars.ts'
+import { lsGameKey, lsRoleKey } from '../defines.ts'
 import { useGameDispatch } from '../store/gameStore.ts'
 
 const Password = () => {
@@ -18,7 +18,7 @@ const Password = () => {
     if (!password) throw new Error('Введите пароль комнаты!')
     const gameId = localStorage.getItem(lsGameKey)
     if (!gameId || !myId) throw new Error('Непредвиденная ошибка клиента!')
-    const result = await GameService.joinToGame(gameId, myId, password)
+    const result = await GameApiService.joinToGame(gameId, myId, password)
     if (!result.status) throw new Error(result.error)
   })
 

@@ -1,17 +1,14 @@
+import ApiError from './ApiError'
 import Game from './Game'
 import type { GameObj, Pair } from '../@types'
 import CustomEmitter from './CustomEmitter'
 import { EventsBody, GameState } from '../../../shared/@types'
 import MatchWinner from './MatchWinner'
 
-type ServiceResp =
-  | { status: true }
-  | { status: false, error: string, code: number }
-
 type JoinPayload = {
   gameId: string,
   playerId: string,
-  password: string
+  password?: string
 }
 
 type StepPayload = {
@@ -41,18 +38,17 @@ class Service {
 
   // **************************
 
-  public cancelGame(obj: { playerId: string, gameId: string }): ServiceResp {
+  public cancelGame(obj: { playerId: string, gameId: string }) {
     const find = this._games.find((it) => {
       return it.id === obj.gameId && it.players.includes(obj.playerId)
     })
 
-    if (!find)
-      return { status: false, error: 'Bad Request', code: 400 }
+    if (!find) {
+      throw new ApiError('Bad Request', 400)
+    }
 
     this.removeGameById(obj.gameId)
     this.emitter.emit('update', this.getGames())
-
-    return { status: true }
   }
 
   public getGames(all = false) {
@@ -118,17 +114,17 @@ class Service {
     return true
   }
 
-  public joinToGame(obj: JoinPayload): ServiceResp {
+  public joinToGame(obj: JoinPayload) {
     const game = this._games.find(it => it.id === obj.gameId)
 
     if (!game || game.started) {
       const error = 'Не удалось найти игру или она уже началась'
-      return { status: false, error, code: 404 }
+      throw new ApiError(error, 404)
     }
 
     if (game.password && obj.password !== game.password) {
       const error = 'Введен неверный пароль!'
-      return { status: false, error, code: 400 }
+      throw new ApiError(error, 400)
     }
 
     game.join(obj.playerId, true)
@@ -151,25 +147,23 @@ class Service {
     game.timer = setTimeout(() => {
       this.closeGame(game)
     }, this._timer * 1000)
-
-    return { status: true }
   }
 
-  public boardStep(obj: StepPayload): ServiceResp {
+  public boardStep(obj: StepPayload) {
     const game = this._games.find(it => {
       return it.id === obj.gameId && it.players.includes(obj.playerId)
     })
 
     if (!game) {
       const error = 'Игра с такими id не найдена!'
-      return { status: false, error, code: 404 }
+      throw new ApiError(error, 404)
     }
 
     const board = game.step(obj.playerId, obj.pos)
 
     if (board === false) {
       const error = 'Сейчас ходит другой игрок!'
-      return { status: false, error, code: 400 }
+      throw new ApiError(error, 400)
     }
 
     if (game.players[1] !== null)
@@ -180,7 +174,7 @@ class Service {
       this.emitter.broadcast('update', players, this.getGames())
 
       const error = 'Ошибка игры, не определен 2 игрок!'
-      return { status: false, error, code: 500 }
+      throw new ApiError(error, 500)
     }
 
     const match = new MatchWinner(board, game.size)
@@ -192,9 +186,10 @@ class Service {
       const isDrawn = !board.some(row => row.some(ceil => ceil === null))
 
       // ************* Игра продолжается *************
+
       if (!isDrawn) {
         game.timer?.refresh()
-        return { status: true }
+        return
       }
 
       this.emitter.broadcast('endgame', game.players, -1)
@@ -205,12 +200,10 @@ class Service {
 
     if (!is) {
       const error = 'Во время удаления игры произошла ошибка!'
-      return { status: false, error, code: 500 }
+      throw new ApiError(error, 500)
     }
 
     this.emitter.broadcast('update', game.players, this.getGames())
-
-    return { status: true }
   }
 
   private closeGame(game: Game) {
